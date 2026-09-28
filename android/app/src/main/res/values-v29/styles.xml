@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 29+: stop Android force-dark from re-tinting the app's own dark theme (color glitches) -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/yrcine_bg</item>
+        <item name="android:statusBarColor">@color/yrcine_bg</item>
+        <item name="android:navigationBarColor">@color/yrcine_bg</item>
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

@@ -3,6 +3,7 @@ package com.yrcine.voidverse;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -27,6 +28,11 @@ public class MainActivity extends BridgeActivity {
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
+            s.setTextZoom(100);
+            // players: allow autoplay and keep embeds working
+            s.setMediaPlaybackRequiresUserGesture(false);
+            CookieManager cm = CookieManager.getInstance();
+            cm.setAcceptThirdPartyCookies(wv, true);
             wv.setHapticFeedbackEnabled(false);
             // suppress the native long-press text-selection menu; the app's own JS gestures still work
             wv.setOnLongClickListener(v -> true);
