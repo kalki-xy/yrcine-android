@@ -7464,6 +7464,34 @@ html,body{background:radial-gradient(120% 90% at 50% 0%, #171612 0%, #12110f 30%
 /* error state */
 #vvHome .vv-error{margin:60px 16px;padding:20px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);text-align:center}
 #vvHome .vv-error button{margin-top:12px;padding:10px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:13px;cursor:pointer}
+
+/* ---------- navbar position (Studio > Navigation) ---------- */
+#vvHome[data-navpos="bottom"] .vv-header{position:fixed;top:auto;bottom:12px;left:12px;right:12px;z-index:40;background:rgba(10,10,8,.88);border:1px solid rgba(255,255,255,.10);border-radius:999px;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 8px 30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06);padding:8px 10px}
+#vvHome[data-navpos="bottom"] .vv-bottom{display:none}
+#vvHome[data-navpos="bottom"] .vv-main{padding-top:8px}
+#vvHome[data-navpos="left"] .vv-header,#vvHome[data-navpos="right"] .vv-header{position:fixed;top:50%;transform:translateY(-50%);flex-direction:column;justify-content:center;background:rgba(10,10,8,.88);border:1px solid rgba(255,255,255,.10);border-radius:26px;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 8px 30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06);padding:10px 6px;z-index:40}
+#vvHome[data-navpos="left"] .vv-header{left:12px}
+#vvHome[data-navpos="right"] .vv-header{right:12px}
+#vvHome[data-navpos="left"] .vv-nav,#vvHome[data-navpos="right"] .vv-nav{flex-direction:column;padding:6px;gap:6px}
+#vvHome[data-navpos="left"] .vv-navbtn,#vvHome[data-navpos="right"] .vv-navbtn{padding:8px 10px;height:auto;font-size:12px}
+#vvHome[data-navpos="left"] .vv-navdiv,#vvHome[data-navpos="right"] .vv-navdiv{width:18px;height:1px;margin:4px 0}
+#vvHome[data-navpos="left"] .vv-main{padding-left:92px;padding-top:8px}
+#vvHome[data-navpos="right"] .vv-main{padding-right:92px;padding-top:8px}
+#vvStudio .vv-navposhead{font-family:'Caveat',cursive;font-size:24px;color:#fff;padding:16px 16px 0}
+#vvStudio .vv-navgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+#vvStudio .vv-posbtn{height:116px;border-radius:20px;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font:600 11px/1 system-ui;letter-spacing:.14em;color:#9a9a95;cursor:pointer;transition:.15s}
+#vvStudio .vv-posbtn.on{border-color:rgba(255,255,255,.30);background:rgba(255,255,255,.12);color:#fff}
+#vvStudio .vv-posdiag{width:64px;height:44px;border-radius:10px;background:#0d0d0b;border:1px solid rgba(255,255,255,.14);position:relative;overflow:hidden}
+#vvStudio .vv-posdiag i{position:absolute;background:#fff;border-radius:2px}
+#vvStudio .vv-posdiag i.t{top:5px;left:7px;right:7px;height:4px}
+#vvStudio .vv-posdiag i.b{bottom:5px;left:7px;right:7px;height:4px}
+#vvStudio .vv-posdiag i.l{left:5px;top:7px;bottom:7px;width:4px}
+#vvStudio .vv-posdiag i.r{right:5px;top:7px;bottom:7px;width:4px}
+.vv-setcard{display:flex;width:100%;align-items:center;gap:12px;margin:14px 0;padding:14px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.02) 100%);color:#fff;cursor:pointer;text-align:left}
+.vv-setcard b{font-family:'Caveat',cursive;font-size:24px;font-weight:700;display:block}
+.vv-setcard span{display:block;font-size:11px;color:#9a9a95;margin-top:2px}
+.vv-setcard i{margin-left:auto;font-style:normal;font-size:20px}
+#yrStudioOverlay{display:none!important}
 </style>
 <script id="yrcine-vv-home-js">
 (function(){
@@ -7587,6 +7615,7 @@ function railOf(cards){ return '<div class="vv-rail vv-hide-scroll">' + cards.jo
 function skeleton(type, n){ var o=[],i; for(i=0;i<n;i++) o.push('<div class="vv-skel' + (type==="p"?" vv-skelp":"") + '"></div>'); return railOf(o); }
 
 function renderHome(el, d){
+  el.setAttribute("data-navpos", navPos());
   var L = homeLayout();
   var html = "";
   L.forEach(function(sec){
@@ -7661,6 +7690,7 @@ function installHome(page){
   }
   if (el.getAttribute("data-state") === "ready") return;
   el.setAttribute("data-state","loading");
+  el.setAttribute("data-navpos", navPos());
   el.innerHTML =
     '<header class="vv-header"><div class="vv-logo">YR</div><div class="vv-navwrap"><div class="vv-nav"><button class="vv-navbtn on">Home</button><button class="vv-navbtn">Movies</button><button class="vv-navbtn">Series</button></div></div></header>' +
     '<main class="vv-main"><section class="vv-section">' + sectionHead("TOP 10", "Content Today") + skeleton("p",4) + "</section>" +
@@ -7689,38 +7719,53 @@ function ensureStudio(){
   s = document.createElement("div");
   s.id = "vvStudio";
   document.body.appendChild(s);
-  renderStudio("home");
+  renderStudio("nav");
   return s;
 }
 function renderStudio(tab){
   var s = document.getElementById("vvStudio");
   if (!s) return;
+  var isNav = tab === "nav";
   var defs = tab === "details" ? DETAIL_SECTIONS : HOME_SECTIONS;
   var cur  = tab === "details" ? detailLayout() : homeLayout();
   var store = tab === "details" ? "vv.layout.details" : "vv.layout.home";
-  var desc = tab === "details" ? "Reorder or hide sections on movie and show watch pages." : "Reorder or hide sections on the home page.";
-  var rows = cur.map(function(sec, i){
-    return '<div class="vv-row' + (sec.visible===false?" off":"") + '" data-id="' + esc(sec.id) + '">' +
-      '<div class="vv-order">' +
-        '<button data-vv-up="' + esc(sec.id) + '" title="Move up"' + (i===0?" disabled":"") + '>▲</button>' +
-        '<div class="vv-orddiv"></div>' +
-        '<button data-vv-down="' + esc(sec.id) + '" title="Move down"' + (i===cur.length-1?" disabled":"") + '>▼</button>' +
-      "</div>" +
-      '<div class="vv-rowlabel">' + esc(sec.label) + "</div>" +
-      '<button class="vv-vis" data-vv-eye="' + esc(sec.id) + '" title="Toggle visibility">' + (sec.visible===false ? "🚫" : "👁") + "</button>" +
-    "</div>";
-  }).join("");
+  var desc = isNav ? "Choose where the navigation bar docks on your screen."
+        : tab === "details" ? "Reorder or hide sections on movie and show watch pages."
+        : "Reorder or hide sections on the home page.";
+  var body = "";
+  if (isNav){
+    var pos = navPos();
+    body = '<div class="vv-navposhead">Navbar Position</div>' +
+      '<div class="vv-navgrid">' +
+      ["top","bottom","left","right"].map(function(p){
+        return '<button class="vv-posbtn' + (pos===p ? " on" : "") + '" data-vv-pos="' + p + '">' +
+          '<span class="vv-posdiag"><i class="' + p.charAt(0) + '"></i></span>' + p.toUpperCase() + "</button>";
+      }).join("") + "</div>";
+  } else {
+    body = '<div class="vv-list">' + cur.map(function(sec, i){
+      return '<div class="vv-row' + (sec.visible===false?" off":"") + '" data-id="' + esc(sec.id) + '">' +
+        '<div class="vv-order">' +
+          '<button data-vv-up="' + esc(sec.id) + '" title="Move up"' + (i===0?" disabled":"") + '>\u25b2</button>' +
+          '<div class="vv-orddiv"></div>' +
+          '<button data-vv-down="' + esc(sec.id) + '" title="Move down"' + (i===cur.length-1?" disabled":"") + '>\u25bc</button>' +
+        "</div>" +
+        '<div class="vv-rowlabel">' + esc(sec.label) + "</div>" +
+        '<button class="vv-vis" data-vv-eye="' + esc(sec.id) + '" title="Toggle visibility">' + (sec.visible===false ? "\ud83d\udeab" : "\ud83d\udc41") + "</button>" +
+      "</div>";
+    }).join("") + "</div>";
+  }
   s.innerHTML =
     '<div class="vv-backdrop" data-vv-closestudio></div>' +
     '<div class="vv-modal">' +
       '<div class="vv-mhead"><div><h1>YRcine Studio</h1><div class="vv-msub">Personalize Your Experience</div></div>' +
-      '<button class="vv-mclose" data-vv-closestudio aria-label="Close">✕</button></div>' +
+      '<button class="vv-mclose" data-vv-closestudio aria-label="Close">\u2715</button></div>' +
       '<div class="vv-tabswrap">' +
+        '<button class="vv-tab' + (isNav?" on":"") + '" data-vv-tab="nav"><span>Navigation</span></button>' +
         '<button class="vv-tab' + (tab==="home"?" on":"") + '" data-vv-tab="home"><span>Home Layout</span></button>' +
         '<button class="vv-tab' + (tab==="details"?" on":"") + '" data-vv-tab="details"><span>Details Layout</span></button>' +
       "</div>" +
       '<div class="vv-tabdesc">' + esc(desc) + "</div>" +
-      '<div class="vv-list">' + rows + "</div>" +
+      body +
     "</div>";
   s.setAttribute("data-tab", tab);
   s.setAttribute("data-store", store);
@@ -7756,6 +7801,10 @@ function applyDetails(){
   var rail = also ? also.nextElementSibling : null;
   var blocks = {hero:hero, episodes:ep, also:also};
   var container = page.querySelector(".mv-watch") || page;
+  var sig = "";
+  L.forEach(function(sec){ sig += sec.id + (sec.visible===false ? "0" : "1") + "|"; });
+  if (container.getAttribute("data-vvorder") === sig) return;
+  container.setAttribute("data-vvorder", sig);
   L.forEach(function(sec){
     var node = blocks[sec.id];
     if (!node) return;
@@ -7773,7 +7822,7 @@ function applyDetails(){
 
 /* ---------- events ---------- */
 document.addEventListener("click", function(e){
-  var t = e.target.closest ? e.target.closest("[data-vv-nav],[data-vv-go],[data-vv-seeall],[data-vv-studio],[data-vv-closestudio],[data-vv-tab],[data-vv-up],[data-vv-down],[data-vv-eye],[data-vv-retry]") : null;
+  var t = e.target.closest ? e.target.closest("[data-vv-nav],[data-vv-go],[data-vv-seeall],[data-vv-studio],[data-vv-closestudio],[data-vv-tab],[data-vv-up],[data-vv-down],[data-vv-eye],[data-vv-retry],[data-vv-pos],[data-vv-openstudio]") : null;
   if (!t) return;
   try{ e.preventDefault(); e.stopPropagation(); }catch(_e){}
 
@@ -7805,6 +7854,20 @@ document.addEventListener("click", function(e){
   if (t.hasAttribute("data-vv-up")){ studioMove(t.getAttribute("data-vv-up"), -1); return; }
   if (t.hasAttribute("data-vv-down")){ studioMove(t.getAttribute("data-vv-down"), 1); return; }
   if (t.hasAttribute("data-vv-eye")){ studioEye(t.getAttribute("data-vv-eye")); var h=document.getElementById("vvHome"); if(h&&h.getAttribute("data-state")==="ready"){ loadHome().then(function(d){ if(document.getElementById("vvHome")===h) renderHome(h,d); }); } return; }
+  if (t.hasAttribute("data-vv-openstudio")){
+    ensureStudio();
+    var stx = document.getElementById("vvStudio");
+    if (stx) stx.classList.add("open");
+    return;
+  }
+  if (t.hasAttribute("data-vv-pos")){
+    var np = t.getAttribute("data-vv-pos");
+    try{ localStorage.setItem("vv.nav.pos", np); }catch(_p){}
+    var hn = document.getElementById("vvHome");
+    if (hn) hn.setAttribute("data-navpos", np);
+    renderStudio("nav");
+    return;
+  }
   if (t.hasAttribute("data-vv-retry")){
     var el = document.getElementById("vvHome");
     if (el){ el.removeAttribute("data-state"); installHome(document.getElementById("page-home")); }
@@ -7813,6 +7876,19 @@ document.addEventListener("click", function(e){
 }, true);
 
 /* ---------- boot + route watching ---------- */
+function navPos(){
+  try{ var v = localStorage.getItem("vv.nav.pos"); return ["top","bottom","left","right"].indexOf(v) >= 0 ? v : "top"; }catch(e){ return "top"; }
+}
+function ensureSettingsEntry(){
+  var pg = document.getElementById("page-settings");
+  if (!pg || pg.querySelector(".vv-setcard")) return;
+  var card = document.createElement("button");
+  card.type = "button";
+  card.className = "vv-setcard";
+  card.setAttribute("data-vv-openstudio","1");
+  card.innerHTML = "<b>YRcine Studio</b><span>Personalize your experience — navbar position, home and details layout</span><i>" + String.fromCharCode(9881) + "</i>";
+  pg.insertBefore(card, pg.firstChild);
+}
 function currentPage(){
   try{ return (document.body.dataset && document.body.dataset.currentPage) || "home"; }catch(e){ return "home"; }
 }
@@ -7823,6 +7899,7 @@ function tick(){
       if (page && !document.getElementById("vvHome")) installHome(page);
     }
     applyDetails();
+    ensureSettingsEntry();
   }catch(e){}
 }
 setInterval(tick, 600);
