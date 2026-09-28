@@ -66,6 +66,8 @@ public class MainActivity extends BridgeActivity {
             // push-notification spam
             "onesignal.com", "notix.io", "gravitec.net", "sendpulse.com",
             "truepush.com", "pushwoosh.com", "webpushs.com",
+            // interstitial / 18+-gate networks (the "Attention!" popups)
+            "revenuehits.com", "monetag.com", "media.net", "a-ads.com",
             // misc counters
             "histats.com", "statcounter.com", "amung.us", "adriver.ru"
     ));
