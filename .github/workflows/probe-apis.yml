@@ -11,27 +11,17 @@ jobs:
         run: |
           set +e
           UA='Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36'
-          probe() {
-            name="$1"; url="$2"; chars="${3:-400}"
-            body=$(curl -s --max-time 25 -A "$UA" -H 'Accept: application/json' "$url" | head -c "$chars" | tr '\n' ' ')
-            echo "### $name"
-            echo "    $body"
-          }
-          echo "========== RULE34 VARIANTS =========="
-          probe "rule34-www" 'https://www.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde'
-          probe "rule34-api-noUA" 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde'
-          echo "========== REALBOORU RETRY =========="
-          probe "realbooru" 'https://realbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde' "400"
-          echo "========== NHENTAI SHAPES =========="
-          probe "nhentai-search-full" 'https://nhentai.net/api/v2/search?query=english&page=1&per_page=2' "900"
-          probe "nhentai-detail" 'https://nhentai.net/api/v2/galleries/684611' "700"
-          echo "========== E621 SHAPES =========="
-          probe "e621-tagged" 'https://e621.net/posts.json?tags=rating:e+blonde&limit=1' "700"
-          echo "========== GELBOORU VARIANTS =========="
-          probe "gelbooru-api-key-url" 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde' "300"
-          probe "gelbooru-xml" 'https://gelbooru.com/index.php?page=dapi&s=post&q=index&limit=1&tags=blonde' "300"
-          echo "========== IMAGE CDN CHECKS =========="
-          for u in 'https://t.nhentai.net/galleries/4214294/thumb.jpg' 'https://i.nhentai.net/galleries/4214294/1.jpg' 'https://wimg.rule34.xxx/thumbnails/4816/0f9c47ab4ba019ebca71e212f0c645d1.jpeg' 'https://cdn.realbooru.com/images/48/0f9c47ab4ba019ebca71e212f0c645d1.jpeg'; do
+          echo "### nhentai-detail-pages"
+          curl -s --max-time 25 -A "$UA" -H 'Accept: application/json' 'https://nhentai.net/api/v2/galleries/684611' | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print('keys:', sorted(d.keys()))
+          print('images:', json.dumps(d.get('images',{}))[:600])
+          print('num_pages:', d.get('num_pages'))
+          "
+          for u in 'https://i.nhentai.net/galleries/4214294/1.webp' 'https://i2.nhentai.net/galleries/4214294/1.webp' 'https://i5.nhentai.net/galleries/4214294/1.webp' 'https://i7.nhentai.net/galleries/4214294/1.webp' 'https://t.nhentai.net/galleries/4214294/thumb.webp' 'https://static1.e621.net/data/preview/5e/19/5e1910a5f9f78af3be2839da53adffeb.jpg'; do
             code=$(curl -s -o /dev/null --max-time 15 -w '%{http_code}' -A "$UA" "$u")
             echo "### img $u => $code"
           done
+          echo "### e621-page2"
+          curl -s --max-time 25 -A "$UA" -H 'Accept: application/json' 'https://e621.net/posts.json?tags=rating:e+blonde&limit=1&page=2' | head -c 200
