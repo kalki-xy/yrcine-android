@@ -1,0 +1,6 @@
+{
+  "appId": "com.yrcine.voidverse",
+  "appName": "YRcine",
+  "webDir": "www",
+  "android": { "allowMixedContent": true }
+}

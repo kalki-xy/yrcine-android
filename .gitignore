@@ -1,0 +1,7 @@
+node_modules/
+android/.gradle/
+android/app/build/
+android/local.properties
+android/app/*.p12
+*.keystore
+.DS_Store
