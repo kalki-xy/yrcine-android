@@ -7333,165 +7333,513 @@ setInterval(function(){try{if(CV.APP.route.page==="settings")note()}catch(e){}},
 })();
 </script>
 
-<style id="yrcine-vv-exact-css">
+
+
+
+<style id="yrcine-vv-home-css">
 /* ============================================================
-   YRcine v2.3 - VOIDVERSE-EXACT theme layer
-   Visual model: voidverse-exact.html (radial warm-dark bg,
-   Caveat display font, glass cards, pill chrome, outline TOP 10)
-   Pure CSS, additive, reversible.
+   YRcine v2.4 - VOIDVERSE HOME (real rebuild)
+   Own markup, live TMDB data, working Studio customization.
    ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 
-:root{
-  --bg:#0a0a08;
-  --bg-2:#0f0f0c;
-  --surf-1:#131311;
-  --surf-2:#1e1e1e;
-  --glass:rgba(20,19,17,.90);
-  --glass-border:rgba(255,255,255,.10);
-  --hairline:rgba(255,255,255,.10);
-  --hairline-2:rgba(255,255,255,.16);
-}
+/* take over the home page: app topbar off, only vvHome visible */
+body[data-current-page="home"] .topbar{display:none!important}
+body[data-current-page="home"] .bottombar{display:none!important}
+body[data-current-page="home"] .main{padding-top:0!important;max-width:520px!important;margin:0 auto}
+#page-home > *:not(#vvHome){display:none!important}
 
-/* ---------- page background: warm dark radial ---------- */
-html,body{
-  background:radial-gradient(120% 90% at 50% 0%, #171612 0%, #12110f 30%, #0a0a08 72%) #0a0a08 !important;
-  background-attachment:fixed !important;
-}
+/* global design tokens (whole app) */
+:root{--vv-cyan:#67e8f9;--vv-muted:#9a9a95;--vv-dim:#6a6a68}
+html,body{background:radial-gradient(120% 90% at 50% 0%, #171612 0%, #12110f 30%, #0a0a08 72%) #0a0a08!important;background-attachment:fixed!important}
+.mv-srv{border-radius:999px!important;border:1px solid rgba(255,255,255,.10)!important;background:rgba(255,255,255,.06)!important}
+.mv-srv.on{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.18)!important;color:#fff!important}
+.otk-card,.vcard,.cont-card{border-radius:20px!important;border:1px solid rgba(255,255,255,.10)!important;box-shadow:0 10px 30px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)!important;overflow:hidden}
+.mv-wtitle,.mv-h2{font-family:'Caveat',cursive!important;font-weight:700!important;letter-spacing:0!important}
+.mv-wtitle{font-size:34px!important;line-height:1.05!important}
+.mv-h2{font-size:30px!important;line-height:1!important;color:#fff!important}
 
-/* ---------- app chrome ---------- */
-.topbar{
-  background:rgba(10,10,8,.82) !important;
-  border-bottom:1px solid rgba(255,255,255,.10) !important;
-}
-.bottombar{
-  left:12px !important;
-  right:12px !important;
-  bottom:10px !important;
-  border-radius:999px !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  border-top:1px solid rgba(255,255,255,.10) !important;
-  background:rgba(28,28,26,.92) !important;
-  box-shadow:0 8px 30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.06) !important;
-}
+/* ---------- vv shell ---------- */
+#vvHome{min-height:100vh;color:#e5e5e5;font:400 14px/1.5 system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;padding-bottom:120px}
+#vvHome .caveat{font-family:'Caveat',cursive}
+#vvHome .vv-outline-text{-webkit-text-stroke:1.2px rgba(255,255,255,.28);color:transparent;font-family:system-ui,-apple-system,sans-serif;font-weight:900;letter-spacing:-.02em}
+#vvHome .vv-outline-number{-webkit-text-stroke:1px rgba(255,255,255,.16);color:transparent;font-family:system-ui,-apple-system,sans-serif;font-weight:900;font-size:168px;line-height:.85;opacity:.55}
+#vvHome .vv-glass{background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.02) 100%);border:1px solid rgba(255,255,255,.10);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+#vvHome .vv-hide-scroll::-webkit-scrollbar{display:none}
+#vvHome .vv-hide-scroll{scrollbar-width:none;-ms-overflow-style:none}
 
-/* ---------- pill buttons everywhere ---------- */
-.mv-srv{
-  border-radius:999px !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  background:rgba(255,255,255,.06) !important;
-}
-.mv-srv.on{
-  background:rgba(255,255,255,.14) !important;
-  border-color:rgba(255,255,255,.18) !important;
-  color:#fff !important;
-}
+/* header */
+#vvHome .vv-header{position:sticky;top:0;z-index:20;padding:12px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#vvHome .vv-logo{width:40px;height:40px;border-radius:50%;background:#000;border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Caveat',cursive;font-weight:700;font-size:20px;color:#fff;letter-spacing:.02em;box-shadow:0 0 12px rgba(255,255,255,.12)}
+#vvHome .vv-navwrap{flex:1;display:flex;justify-content:center}
+#vvHome .vv-nav{display:flex;align-items:center;gap:2px;background:#000;border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:3px;box-shadow:0 2px 20px rgba(0,0,0,.6)}
+#vvHome .vv-navbtn{padding:0 14px;height:30px;border-radius:999px;font-size:13px;font-weight:500;letter-spacing:.01em;border:1px solid transparent;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;transition:.15s}
+#vvHome .vv-navbtn.on{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18);color:#fff}
+#vvHome .vv-navdiv{width:1px;height:18px;background:rgba(255,255,255,.10);margin:0 4px}
+#vvHome .vv-searchbtn{width:30px;height:30px;border-radius:50%;background:transparent;border:0;color:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;cursor:pointer}
+#vvHome .vv-gearbtn{width:40px;height:40px;border-radius:50%;background:#000;border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.8);cursor:pointer;flex-shrink:0;transition:.15s}
+#vvHome .vv-gearbtn:active{transform:scale(.94)}
 
-/* ---------- glass content cards ---------- */
-.vcard,.otk-card,.cont-card{
-  border-radius:20px !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  background:linear-gradient(135deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 100%) !important;
-  box-shadow:0 10px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08) !important;
-  overflow:hidden;
-}
+/* sections */
+#vvHome .vv-section{margin:2px 0 32px;padding:0 16px}
+#vvHome .vv-sechead{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+#vvHome .vv-sechead.vv-rowhead{align-items:center;justify-content:space-between}
+#vvHome .vv-sec-title{font-family:'Caveat',cursive;font-weight:700;font-size:32px;line-height:1;color:#fff;letter-spacing:-.01em;margin:0}
+#vvHome .vv-sec-sub{font-size:11px;letter-spacing:.22em;color:#9a9a95;text-transform:uppercase;font-weight:500}
+#vvHome .vv-big{font-size:42px;line-height:1}
+#vvHome .vv-seeall{font-family:'Caveat',cursive;font-size:20px;line-height:1;color:#6a6a68;background:none;border:0;cursor:pointer;padding:0}
+#vvHome .vv-rail{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+#vvHome .vv-rail::-webkit-scrollbar{display:none}
 
-/* ---------- Caveat display type on titles ---------- */
-.yr-ref-sec-title,
-#yrHomeV2 .yh-kick,
-.mv-h2,
-.mv-wtitle{
-  font-family:'Caveat', cursive !important;
-  font-weight:700 !important;
-  letter-spacing:0 !important;
-}
-.yr-ref-sec-title{font-size:32px !important;line-height:1 !important;color:#fff !important}
-#yrHomeV2 .yh-kick{font-size:26px !important;text-transform:none !important;letter-spacing:.02em !important}
-.mv-wtitle{font-size:34px !important;line-height:1.05 !important}
-.mv-h2{font-size:30px !important;line-height:1 !important;color:#fff !important}
+/* top 10 poster cards */
+#vvHome .vv-top10card{position:relative;flex:0 0 176px;scroll-snap-align:start;cursor:pointer}
+#vvHome .vv-rank{position:absolute;left:-2px;top:-8px;z-index:0;user-select:none;pointer-events:none}
+#vvHome .vv-poster{position:relative;z-index:10;width:160px;height:230px;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);background:#111}
+#vvHome .vv-poster img{width:100%;height:100%;object-fit:cover;display:block}
+#vvHome .vv-posterlabel{margin-top:8px;padding-left:18px;font-family:'Caveat',cursive;font-size:17px;line-height:1.15;color:#cfcfc9;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
-/* ---------- TOP 10: outlined display header ---------- */
-.yr-ref-section:has(.yr-top10-rail) .yr-ref-sec-title{
-  font-family:system-ui, -apple-system, sans-serif !important;
-  font-weight:900 !important;
-  font-size:42px !important;
-  line-height:1 !important;
-  letter-spacing:-.02em !important;
-  color:transparent !important;
-  -webkit-text-stroke:1.2px rgba(255,255,255,.28) !important;
-}
-.yr-ref-section:has(.yr-top10-rail) .yr-ref-sec-title span{
-  color:#9a9a95 !important;
-  -webkit-text-stroke:0 !important;
-  font-size:11px !important;
-  font-weight:500 !important;
-  letter-spacing:.22em !important;
-  text-transform:uppercase !important;
-}
+/* landscape cards */
+#vvHome .vv-card{position:relative;flex:0 0 280px;height:160px;border-radius:20px;overflow:hidden;scroll-snap-align:start;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.02) 100%);border:1px solid rgba(255,255,255,.10)}
+#vvHome .vv-card img{width:100%;height:100%;object-fit:cover;display:block}
+#vvHome .vv-cardov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.85) 100%)}
+#vvHome .vv-cardtitle{position:absolute;bottom:10px;left:12px;right:12px;font-family:'Caveat',cursive;font-weight:700;font-size:21px;line-height:1;color:#fff;text-shadow:0 0 10px rgba(255,255,255,.15);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#vvHome .vv-cardmeta{position:absolute;bottom:38px;left:12px;font-size:10px;letter-spacing:.14em;color:#9a9a95;text-transform:uppercase;font-weight:600}
+#vvHome .vv-cwbadge{position:absolute;top:10px;left:10px;background:rgba(6,182,212,.85);color:#001014;font:700 10px/1 system-ui;padding:5px 8px;border-radius:8px;letter-spacing:.08em}
 
-/* ---------- TOP 10: rank number behind poster ---------- */
-html.yr-ref-v2 .yr-top10-card::before{
-  font-weight:900 !important;
-  font-size:180px !important;
-  line-height:.85 !important;
-  -webkit-text-stroke:1px rgba(255,255,255,.16) !important;
-  text-stroke:1px rgba(255,255,255,.16) !important;
-  top:-8px !important;
-  bottom:auto !important;
-  left:-2px !important;
-  opacity:.55;
-}
-.yr-top10-card{flex:0 0 176px !important;height:240px !important}
-.yr-top10-poster{
-  width:150px !important;
-  height:216px !important;
-  border-radius:20px !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08) !important;
-}
+/* continue watching wide cards */
+#vvHome .vv-cwcard{flex:0 0 280px;height:160px}
+#vvHome .vv-cwprog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.15)}
+#vvHome .vv-cwprog i{display:block;height:100%;background:#67e8f9}
 
-/* ---------- see-all links ---------- */
-.yr-ref-see{
-  font-family:'Caveat', cursive !important;
-  font-size:20px !important;
-  line-height:1 !important;
-  color:#6a6a68 !important;
-}
+/* skeleton */
+#vvHome .vv-skel{flex:0 0 280px;height:160px;border-radius:20px;background:linear-gradient(100deg,#151513 40%,#1f1f1c 50%,#151513 60%);background-size:200% 100%;animation:vvsh 1.3s linear infinite}
+#vvHome .vv-skel.vv-skelp{flex:0 0 176px;height:230px}
+@keyframes vvsh{to{background-position:-200% 0}}
 
-/* ---------- sticky nav pill ---------- */
-.yr-ref-nav{
-  background:#000 !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  border-radius:999px !important;
-  box-shadow:0 2px 20px rgba(0,0,0,.6) !important;
-}
+/* footer */
+#vvHome .vv-footer{margin-top:56px;padding:0 24px}
+#vvHome .vv-footlogo{width:48px;height:48px;border-radius:50%;background:#000;border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-weight:700;font-size:24px;box-shadow:0 0 14px rgba(255,255,255,.14);margin-bottom:32px}
+#vvHome .vv-tag{font-family:'Caveat',cursive;font-style:italic;font-size:20px;line-height:1.35;color:#9a9a95;max-width:320px;margin-bottom:40px}
+#vvHome .vv-footkick{font-size:11px;letter-spacing:.16em;color:#6a6a68;text-transform:uppercase;font-weight:500;margin-bottom:16px}
+#vvHome .vv-footlinks{display:flex;flex-direction:column;gap:10px;margin-bottom:40px}
+#vvHome .vv-footlink{font-family:'Caveat',cursive;font-size:24px;color:#9a9a95;line-height:1;cursor:pointer;background:none;border:0;text-align:left;padding:0}
+#vvHome .vv-div{height:1px;background:rgba(255,255,255,.10);margin-bottom:32px}
+#vvHome .vv-footcopy{text-align:center;font-size:11px;letter-spacing:.14em;color:#6a6a68;text-transform:uppercase}
+#vvHome .vv-footlegal{display:flex;justify-content:center;gap:16px;margin-top:12px;font-size:11px;letter-spacing:.16em;color:#6a6a68;text-transform:uppercase}
+#vvHome .vv-footpill{margin:40px 0 24px;border-radius:999px;background:#1e1e1e;border:1px solid rgba(255,255,255,.10);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+#vvHome .vv-pillsm{font-size:10px;letter-spacing:.18em;color:#6a6a68;text-transform:uppercase;font-weight:500}
+#vvHome .vv-pillb{font-family:'Caveat',cursive;font-size:16px;color:#9a9a95;line-height:1;margin-top:2px}
+#vvHome .vv-pillbtn{padding:0 16px;height:32px;border-radius:999px;background:#000;border:1px solid rgba(255,255,255,.20);color:#fff;font-size:11px;letter-spacing:.12em;font-weight:500;cursor:pointer;white-space:nowrap}
 
-/* ---------- official domain pill ---------- */
-.yr-domain-pill{
-  border-radius:999px !important;
-  background:#1e1e1e !important;
-  border:1px solid rgba(255,255,255,.10) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06) !important;
-}
-.yr-domain-copy small{
-  color:#6a6a68 !important;
-  font-size:10px !important;
-  letter-spacing:.18em !important;
-}
-.yr-domain-copy b{
-  font-family:'Caveat', cursive !important;
-  font-weight:500 !important;
-  font-size:17px !important;
-  color:#9a9a95 !important;
-  letter-spacing:.02em !important;
-}
-.yr-domain-btn{
-  background:#000 !important;
-  border:1px solid rgba(255,255,255,.20) !important;
-  border-radius:999px !important;
-  font-size:11px !important;
-  letter-spacing:.12em !important;
-}
+/* floating bottom pill */
+#vvHome .vv-bottom{position:fixed;bottom:12px;left:12px;right:12px;z-index:30;display:flex;justify-content:center;pointer-events:none;max-width:496px;margin:0 auto}
+#vvHome .vv-bottomin{pointer-events:auto;width:100%;border-radius:999px;background:rgba(28,28,26,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.10);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.8)}
+#vvHome .vv-bottombtn{padding:0 14px;height:30px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.20);color:#fff;font-size:10px;letter-spacing:.12em;font-weight:500;cursor:pointer;white-space:nowrap}
+
+/* studio modal */
+#vvStudio{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+#vvStudio.open{display:flex}
+#vvStudio .vv-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.80);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#vvStudio .vv-modal{position:relative;width:100%;max-width:420px;border-radius:28px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#1e1e1a 0%,#161613 100%);box-shadow:0 24px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;max-height:86vh;overflow-y:auto}
+#vvStudio .vv-mhead{padding:24px 24px 20px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+#vvStudio h1{font-family:'Caveat',cursive;font-size:38px;line-height:.9;font-weight:700;color:#fff;letter-spacing:-.01em;margin:0}
+#vvStudio .vv-msub{margin-top:8px;font-size:11px;letter-spacing:.14em;color:#6a6a68;text-transform:uppercase;font-weight:500}
+#vvStudio .vv-mclose{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+#vvStudio .vv-tabs{display:flex;gap:8px;padding:4px;margin:16px}
+#vvStudio .vv-tabswrap{margin:16px 16px 0;padding:4px;border-radius:999px;background:rgba(0,0,0,.40);border:1px solid rgba(255,255,255,.10);display:flex;gap:8px}
+#vvStudio .vv-tab{flex:1;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;border:1px solid transparent;background:transparent;color:#6a6a68;cursor:pointer;transition:.15s}
+#vvStudio .vv-tab.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.18);color:#fff}
+#vvStudio .vv-tab span{font-family:'Caveat',cursive;font-size:17px}
+#vvStudio .vv-tabdesc{padding:16px 24px 8px;font-family:'Caveat',cursive;font-style:italic;font-size:18px;line-height:1.25;color:#8a8a85}
+#vvStudio .vv-list{padding:8px 16px 24px;display:flex;flex-direction:column;gap:14px}
+#vvStudio .vv-row{display:flex;align-items:center;justify-content:space-between;gap:12px;height:72px;padding:0 12px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 100%);opacity:1}
+#vvStudio .vv-row.off{border-color:rgba(255,255,255,.06);opacity:.42}
+#vvStudio .vv-order{width:32px;height:56px;border-radius:999px;background:rgba(0,0,0,.40);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex-shrink:0}
+#vvStudio .vv-order button{width:22px;height:18px;border:0;background:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;line-height:1;padding:0}
+#vvStudio .vv-orddiv{width:14px;height:1px;background:rgba(255,255,255,.10)}
+#vvStudio .vv-rowlabel{flex:1;min-width:0;font-family:'Caveat',cursive;font-size:24px;line-height:1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vvStudio .vv-vis{width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px}
+#vvStudio .vv-vis:active{background:rgba(255,255,255,.14)}
+
+/* error state */
+#vvHome .vv-error{margin:60px 16px;padding:20px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);text-align:center}
+#vvHome .vv-error button{margin-top:12px;padding:10px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:13px;cursor:pointer}
 </style>
+<script id="yrcine-vv-home-js">
+(function(){
+"use strict";
+if (window.__YRCINE_VV_HOME) return; window.__YRCINE_VV_HOME = 1;
+
+var TMDB_KEY = (function(){ try { return (localStorage.getItem("mv.tmdb.key")||"").trim() || "db55323b8d3e4154498a75642b381"; } catch(e){ return "db55323b8d3e4154498a75642b381"; } })();
+var IMG = "https://image.tmdb.org/t/p/";
+
+var HOME_SECTIONS = [
+  {id:"continue", label:"Continue Watching", fixed:true},
+  {id:"top10",    label:"Top 10"},
+  {id:"trending", label:"Trending Now"},
+  {id:"popular",  label:"Popular Movies"},
+  {id:"toprm",    label:"Top Rated Movies"},
+  {id:"toprtv",   label:"Top Rated TV Shows"}
+];
+var DETAIL_SECTIONS = [
+  {id:"hero",     label:"Details Hero"},
+  {id:"episodes", label:"Episodes"},
+  {id:"also",     label:"You Might Also Like"}
+];
+
+function esc(x){
+  x = String(x == null ? "" : x);
+  return x.replace(/[&<>"']/g, function(c){
+    if (c === "&") return "&" + "amp;";
+    if (c === "<") return "&" + "lt;";
+    if (c === ">") return "&" + "gt;";
+    if (c === '"') return "&" + "quot;";
+    return "&" + "#39;";
+  });
+}
+function ls(k, d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function mergeLayout(saved, defs){
+  var out=[];
+  (saved||[]).forEach(function(s){ for(var i=0;i<defs.length;i++) if(defs[i].id===s.id){ out.push({id:defs[i].id,label:defs[i].label,visible:!!s.visible,fixed:defs[i].fixed}); break; } });
+  defs.forEach(function(d){ var has=false; out.forEach(function(o){ if(o.id===d.id) has=true; }); if(!has) out.push({id:d.id,label:d.label,visible:d.fixed!==false, fixed:d.fixed}); });
+  return out;
+}
+function homeLayout(){ return mergeLayout(ls("vv.layout.home",null), HOME_SECTIONS); }
+function detailLayout(){ return mergeLayout(ls("vv.layout.details",null), DETAIL_SECTIONS); }
+
+function api(path){
+  var u = "https://api.themoviedb.org/3" + path + (path.indexOf("?")>=0?"&":"?") + "api_key=" + encodeURIComponent(TMDB_KEY);
+  return fetch(u).then(function(r){ return r.ok ? r.json() : Promise.reject(new Error("HTTP "+r.status)); });
+}
+function loadHome(){
+  var c = ls("vv.home.cache", null);
+  if (c && Date.now()-c.t < 900000) return Promise.resolve(c.d);
+  return Promise.all([
+    api("/trending/all/week"),
+    api("/movie/popular"),
+    api("/movie/top_rated"),
+    api("/tv/top_rated")
+  ]).then(function(r){
+    var d = {
+      trending: (r[0]&&r[0].results)||[],
+      popular:  (r[1]&&r[1].results)||[],
+      toprm:    (r[2]&&r[2].results)||[],
+      toprtv:   (r[3]&&r[3].results)||[]
+    };
+    d.top10 = d.trending.slice(0,10);
+    save("vv.home.cache", {t:Date.now(), d:d});
+    return d;
+  });
+}
+function recents(){
+  try{ return JSON.parse(localStorage.getItem("mv.recents")||"[]"); }catch(e){ return []; }
+}
+
+function go(page, series){
+  if (series) { try{ localStorage.setItem("mv.mode", series==="tv"?"tv":"movie"); }catch(e){} }
+  try{ if (window.CV && CV.Router && CV.Router.go) { CV.Router.go(page); return; } }catch(e){}
+  try{ location.hash = "#/" + page; }catch(e){}
+}
+
+/* ---------- card builders ---------- */
+function landscapeCard(x, type, extra){
+  var t = x.title || x.name || "";
+  var y = String(x.release_date || x.first_air_date || "").slice(0,4);
+  var img = IMG + "w780" + (x.backdrop_path || x.poster_path || "");
+  var vote = x.vote_average ? (Math.round(x.vote_average*10)/10) + "/10" : "";
+  return '<article class="vv-card vv-glass' + (extra||"") + '" data-action="mv-open" data-id="' + esc(x.id) + '" data-type="' + esc(type) + '">' +
+    (x.backdrop_path||x.poster_path ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : "") +
+    '<div class="vv-cardov"></div>' +
+    (vote ? '<span class="vv-cardmeta">★ ' + esc(vote) + (y?" · "+esc(y):"") + '</span>' : (y?'<span class="vv-cardmeta">'+esc(y)+'</span>':"")) +
+    '<div class="vv-cardtitle">' + esc(t) + "</div></article>";
+}
+function top10Card(x, i){
+  var t = x.title || x.name || "";
+  var type = x.media_type === "tv" ? "tv" : "movie";
+  var img = IMG + "w342" + (x.poster_path || "");
+  return '<div class="vv-top10card" data-action="mv-open" data-id="' + esc(x.id) + '" data-type="' + esc(type) + '">' +
+    '<div class="vv-rank vv-outline-number">' + (i+1) + "</div>" +
+    '<div class="vv-poster vv-glass">' + (x.poster_path ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : "") + "</div>" +
+    '<div class="vv-posterlabel">' + esc(t) + "</div></div>";
+}
+function cwCard(r){
+  var pct = 0;
+  try{ pct = Math.max(4, Math.min(96, parseInt(r.prog||0,10)||0)); }catch(e){}
+  var ep = r.s ? "S"+r.s+(r.e?" · E"+r.e:"") : "";
+  return '<article class="vv-card vv-glass vv-cwcard" data-action="mv-open" data-id="' + esc(r.id) + '" data-type="' + esc(r.media||"movie") + '">' +
+    (r.poster ? '<img src="' + esc(r.poster) + '" alt="" loading="lazy">' : "") +
+    '<div class="vv-cardov"></div>' +
+    (ep ? '<span class="vv-cwbadge">▶ ' + esc(ep) + "</span>" : "") +
+    '<div class="vv-cardtitle">' + esc(r.title||"") + "</div>" +
+    '<div class="vv-cwprog"><i style="width:' + pct + '%"></i></div></article>';
+}
+
+/* ---------- render ---------- */
+function sectionHead(title, sub, seeAllId){
+  var h = '<div class="vv-sechead' + (sub||seeAllId ? "" : " vv-rowhead") + '">';
+  if (sub) h += '<h2 class="vv-sec-title vv-outline-text vv-big">' + esc(title) + '</h2><span class="vv-sec-sub">' + esc(sub) + "</span>";
+  else h += '<h2 class="vv-sec-title">' + esc(title) + "</h2>";
+  if (seeAllId) h += '<button class="vv-seeall" data-vv-seeall="' + esc(seeAllId) + '">See All ></button>';
+  return h + "</div>";
+}
+function railOf(cards){ return '<div class="vv-rail vv-hide-scroll">' + cards.join("") + '<div style="flex:0 0 16px"></div></div>'; }
+function skeleton(type, n){ var o=[],i; for(i=0;i<n;i++) o.push('<div class="vv-skel' + (type==="p"?" vv-skelp":"") + '"></div>'); return railOf(o); }
+
+function renderHome(el, d){
+  var L = homeLayout();
+  var html = "";
+  L.forEach(function(sec){
+    if (sec.visible === false) return;
+    switch(sec.id){
+      case "continue":
+        var cw = recents().slice(0,10);
+        if (cw.length) html += '<section class="vv-section">' + sectionHead("Continue Watching", null, "continue") + railOf(cw.map(cwCard)) + "</section>";
+        break;
+      case "top10":
+        html += '<section class="vv-section"><div class="vv-sechead"><h2 class="vv-sec-title vv-outline-text vv-big">TOP 10</h2><span class="vv-sec-sub">Content Today</span></div>' +
+          '<div class="vv-rail vv-hide-scroll">' + d.top10.map(top10Card).join("") + '<div style="flex:0 0 16px"></div></div></section>';
+        break;
+      case "trending":
+        html += '<section class="vv-section">' + sectionHead("Trending Now", null, "trending") +
+          railOf(d.trending.slice(3,15).map(function(x){ return landscapeCard(x, x.media_type==="tv"?"tv":"movie"); })) + "</section>";
+        break;
+      case "popular":
+        html += '<section class="vv-section">' + sectionHead("Popular Movies", null, "popular") + railOf(d.popular.slice(0,12).map(function(x){ return landscapeCard(x,"movie"); })) + "</section>";
+        break;
+      case "toprm":
+        html += '<section class="vv-section">' + sectionHead("Top Rated Movies", null, "toprm") + railOf(d.toprm.slice(0,12).map(function(x){ return landscapeCard(x,"movie"); })) + "</section>";
+        break;
+      case "toprtv":
+        html += '<section class="vv-section">' + sectionHead("Top Rated TV Shows", null, "toprtv") + railOf(d.toprtv.slice(0,12).map(function(x){ return landscapeCard(x,"tv"); })) + "</section>";
+        break;
+    }
+  });
+
+  html +=
+  '<footer class="vv-footer">' +
+    '<div class="vv-footlogo">YR</div>' +
+    '<p class="vv-tag">The premium destination for movies, series, and anime. Designed for an unparalleled viewing experience.</p>' +
+    '<div class="vv-footkick">Navigation</div>' +
+    '<div class="vv-footlinks">' +
+      '<button class="vv-footlink" data-vv-go="home">Home</button>' +
+      '<button class="vv-footlink" data-vv-go="movies">Movies</button>' +
+      '<button class="vv-footlink" data-vv-go="series">Series</button>' +
+      '<button class="vv-footlink" data-vv-go="watchlist">My List</button>' +
+    "</div>" +
+    '<div class="vv-div"></div>' +
+    '<div class="vv-footcopy">© 2026 YRCINE · POWERED BY VIDZEE</div>' +
+    '<div class="vv-footlegal"><button class="vv-footlink" style="font-size:11px;letter-spacing:.16em;color:#6a6a68" data-vv-go="settings">Privacy</button><button class="vv-footlink" style="font-size:11px;letter-spacing:.16em;color:#6a6a68" data-vv-go="settings">Terms</button></div>' +
+    '<div class="vv-footpill"><div><span class="vv-pillsm">Official App</span><div class="vv-pillb">Everything plays on VidZee</div></div><button class="vv-pillbtn" data-vv-go="home">YRCINE</button></div>' +
+  "</footer>";
+
+  el.innerHTML =
+    '<header class="vv-header">' +
+      '<div class="vv-logo" data-vv-go="home">YR</div>' +
+      '<div class="vv-navwrap"><div class="vv-nav">' +
+        '<button class="vv-navbtn on" data-vv-nav="home">Home</button>' +
+        '<button class="vv-navbtn" data-vv-nav="movies">Movies</button>' +
+        '<button class="vv-navbtn" data-vv-nav="series">Series</button>' +
+        '<div class="vv-navdiv"></div>' +
+        '<button class="vv-searchbtn" data-vv-go="search" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6"/><path d="M16.5 16.5L20 20" stroke-linecap="round"/></svg></button>' +
+      "</div></div>" +
+      '<button class="vv-gearbtn" data-vv-studio aria-label="Personalize"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2M12 19.5v2M4.5 7l1.5 1M17.5 17l1.5 1M2.5 12h2M19.5 12h2M4.5 17l1.5-1M17.5 7l1.5-1" stroke-linecap="round"/></svg></button>' +
+    "</header>" +
+    '<main class="vv-main">' + html + "</main>" +
+    '<div class="vv-bottom"><div class="vv-bottomin"><div><span class="vv-pillsm">Official App</span><div class="vv-pillb caveat" style="font-size:15px;color:rgba(255,255,255,.8)">Update your bookmarks</div></div><button class="vv-bottombtn" data-vv-go="home">YRCINE</button></div></div>';
+
+  var studio = document.getElementById("vvStudio");
+  if (studio) el.appendChild(studio);
+}
+
+function installHome(page){
+  var el = document.getElementById("vvHome");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "vvHome";
+    page.insertBefore(el, page.firstChild);
+  }
+  if (el.getAttribute("data-state") === "ready") return;
+  el.setAttribute("data-state","loading");
+  el.innerHTML =
+    '<header class="vv-header"><div class="vv-logo">YR</div><div class="vv-navwrap"><div class="vv-nav"><button class="vv-navbtn on">Home</button><button class="vv-navbtn">Movies</button><button class="vv-navbtn">Series</button></div></div></header>' +
+    '<main class="vv-main"><section class="vv-section">' + sectionHead("TOP 10", "Content Today") + skeleton("p",4) + "</section>" +
+    '<section class="vv-section">' + sectionHead("Trending Now") + skeleton("l",3) + "</section>" +
+    '<section class="vv-section">' + sectionHead("Popular Movies") + skeleton("l",3) + "</section></main>";
+
+  loadHome().then(function(d){
+    if (document.getElementById("vvHome") !== el) return;
+    renderHome(el, d);
+    el.setAttribute("data-state","ready");
+  }, function(){
+    if (document.getElementById("vvHome") !== el) return;
+    el.setAttribute("data-state","error");
+    el.innerHTML =
+    '<header class="vv-header"><div class="vv-logo">YR</div></header>' +
+    '<div class="vv-error"><div style="font-family:Caveat,cursive;font-size:24px">TMDB unreachable</div>' +
+    '<div style="color:#9a9a95;font-size:13px;margin-top:6px">Check your connection and try again.</div>' +
+    '<button data-vv-retry>Retry</button></div>';
+  });
+}
+
+/* ---------- studio ---------- */
+function ensureStudio(){
+  var s = document.getElementById("vvStudio");
+  if (s) return s;
+  s = document.createElement("div");
+  s.id = "vvStudio";
+  document.body.appendChild(s);
+  renderStudio("home");
+  return s;
+}
+function renderStudio(tab){
+  var s = document.getElementById("vvStudio");
+  if (!s) return;
+  var defs = tab === "details" ? DETAIL_SECTIONS : HOME_SECTIONS;
+  var cur  = tab === "details" ? detailLayout() : homeLayout();
+  var store = tab === "details" ? "vv.layout.details" : "vv.layout.home";
+  var desc = tab === "details" ? "Reorder or hide sections on movie and show watch pages." : "Reorder or hide sections on the home page.";
+  var rows = cur.map(function(sec, i){
+    return '<div class="vv-row' + (sec.visible===false?" off":"") + '" data-id="' + esc(sec.id) + '">' +
+      '<div class="vv-order">' +
+        '<button data-vv-up="' + esc(sec.id) + '" title="Move up"' + (i===0?" disabled":"") + '>▲</button>' +
+        '<div class="vv-orddiv"></div>' +
+        '<button data-vv-down="' + esc(sec.id) + '" title="Move down"' + (i===cur.length-1?" disabled":"") + '>▼</button>' +
+      "</div>" +
+      '<div class="vv-rowlabel">' + esc(sec.label) + "</div>" +
+      '<button class="vv-vis" data-vv-eye="' + esc(sec.id) + '" title="Toggle visibility">' + (sec.visible===false ? "🚫" : "👁") + "</button>" +
+    "</div>";
+  }).join("");
+  s.innerHTML =
+    '<div class="vv-backdrop" data-vv-closestudio></div>' +
+    '<div class="vv-modal">' +
+      '<div class="vv-mhead"><div><h1>YRcine Studio</h1><div class="vv-msub">Personalize Your Experience</div></div>' +
+      '<button class="vv-mclose" data-vv-closestudio aria-label="Close">✕</button></div>' +
+      '<div class="vv-tabswrap">' +
+        '<button class="vv-tab' + (tab==="home"?" on":"") + '" data-vv-tab="home"><span>Home Layout</span></button>' +
+        '<button class="vv-tab' + (tab==="details"?" on":"") + '" data-vv-tab="details"><span>Details Layout</span></button>' +
+      "</div>" +
+      '<div class="vv-tabdesc">' + esc(desc) + "</div>" +
+      '<div class="vv-list">' + rows + "</div>" +
+    "</div>";
+  s.setAttribute("data-tab", tab);
+  s.setAttribute("data-store", store);
+}
+function studioMove(id, dir){
+  var s = document.getElementById("vvStudio");
+  var L = s.getAttribute("data-tab")==="details" ? detailLayout() : homeLayout();
+  var i = -1; L.forEach(function(x,j){ if(x.id===id) i=j; });
+  var j = i + dir;
+  if (i<0 || j<0 || j>=L.length) return;
+  var t = L[i]; L[i]=L[j]; L[j]=t;
+  save(s.getAttribute("data-store"), L);
+  renderStudio(s.getAttribute("data-tab"));
+}
+function studioEye(id){
+  var s = document.getElementById("vvStudio");
+  var L = s.getAttribute("data-tab")==="details" ? detailLayout() : homeLayout();
+  L.forEach(function(x){ if(x.id===id) x.visible = (x.visible===false); });
+  save(s.getAttribute("data-store"), L);
+  renderStudio(s.getAttribute("data-tab"));
+}
+
+/* ---------- details layout applied to watch pages ---------- */
+function applyDetails(){
+  var page = document.getElementById("page-movie-watch");
+  if (!page) return;
+  var L = detailLayout();
+  var vis = {}; L.forEach(function(s){ vis[s.id] = s.visible !== false; });
+  var hero = page.querySelector(".mv-player");
+  var ep = page.querySelector(".mv-epnav");
+  var also = null;
+  page.querySelectorAll(".mv-h2").forEach(function(h){ if (String(h.textContent||"").indexOf("More Like This")>=0) also = h; });
+  var rail = also ? also.nextElementSibling : null;
+  var blocks = {hero:hero, episodes:ep, also:also};
+  var container = page.querySelector(".mv-watch") || page;
+  L.forEach(function(sec){
+    var node = blocks[sec.id];
+    if (!node) return;
+    if (sec.visible === false){
+      node.style.display = "none";
+      if (sec.id==="also" && rail) rail.style.display = "none";
+    } else {
+      node.style.display = "";
+      if (sec.id==="also" && rail) rail.style.display = "";
+      try{ container.appendChild(node); }catch(e){}
+      if (sec.id==="also" && rail){ try{ container.appendChild(rail); }catch(e){} }
+    }
+  });
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", function(e){
+  var t = e.target.closest ? e.target.closest("[data-vv-nav],[data-vv-go],[data-vv-seeall],[data-vv-studio],[data-vv-closestudio],[data-vv-tab],[data-vv-up],[data-vv-down],[data-vv-eye],[data-vv-retry]") : null;
+  if (!t) return;
+  try{ e.preventDefault(); e.stopPropagation(); }catch(_e){}
+
+  if (t.hasAttribute("data-vv-nav")){
+    var nav = t.getAttribute("data-vv-nav");
+    var all = document.querySelectorAll("#vvHome .vv-navbtn");
+    for (var i=0;i<all.length;i++) all[i].classList.remove("on");
+    t.classList.add("on");
+    go(nav==="series" ? "movies" : nav, nav==="series" ? "tv" : (nav==="movies" ? "movie" : null));
+    return;
+  }
+  if (t.hasAttribute("data-vv-go")){
+    var g = t.getAttribute("data-vv-go");
+    if (g === "series") go("movies","tv"); else go(g);
+    return;
+  }
+  if (t.hasAttribute("data-vv-seeall")){
+    var w = t.getAttribute("data-vv-seeall");
+    if (w === "continue"){ try{ localStorage.setItem("mv.mode","movie"); }catch(_x){} go("watchlist"); }
+    else if (w === "trending"){ try{ localStorage.setItem("mv.mode","movie"); }catch(_x){} go("movies"); }
+    else if (w === "popular"){ try{ localStorage.setItem("mv.mode","movie"); }catch(_x){} go("movies"); }
+    else if (w === "toprm"){ try{ localStorage.setItem("mv.mode","movie"); }catch(_x){} go("movies"); }
+    else if (w === "toprtv"){ try{ localStorage.setItem("mv.mode","tv"); }catch(_x){} go("movies"); }
+    return;
+  }
+  if (t.hasAttribute("data-vv-studio")){ ensureStudio().classList.add("open"); return; }
+  if (t.hasAttribute("data-vv-closestudio")){ var st=document.getElementById("vvStudio"); if(st) st.classList.remove("open"); return; }
+  if (t.hasAttribute("data-vv-tab")){ renderStudio(t.getAttribute("data-vv-tab")); return; }
+  if (t.hasAttribute("data-vv-up")){ studioMove(t.getAttribute("data-vv-up"), -1); return; }
+  if (t.hasAttribute("data-vv-down")){ studioMove(t.getAttribute("data-vv-down"), 1); return; }
+  if (t.hasAttribute("data-vv-eye")){ studioEye(t.getAttribute("data-vv-eye")); var h=document.getElementById("vvHome"); if(h&&h.getAttribute("data-state")==="ready"){ loadHome().then(function(d){ if(document.getElementById("vvHome")===h) renderHome(h,d); }); } return; }
+  if (t.hasAttribute("data-vv-retry")){
+    var el = document.getElementById("vvHome");
+    if (el){ el.removeAttribute("data-state"); installHome(document.getElementById("page-home")); }
+    return;
+  }
+}, true);
+
+/* ---------- boot + route watching ---------- */
+function currentPage(){
+  try{ return (document.body.dataset && document.body.dataset.currentPage) || "home"; }catch(e){ return "home"; }
+}
+function tick(){
+  try{
+    if (currentPage() === "home"){
+      var page = document.getElementById("page-home");
+      if (page && !document.getElementById("vvHome")) installHome(page);
+    }
+    applyDetails();
+  }catch(e){}
+}
+setInterval(tick, 600);
+window.addEventListener("hashchange", function(){ setTimeout(tick, 50); });
+if (document.readyState !== "loading") tick(); else document.addEventListener("DOMContentLoaded", tick);
+
+/* keep vvHome alive if another layer wipes the page */
+try{
+  var mo = new MutationObserver(function(){
+    if (currentPage() === "home"){
+      var page = document.getElementById("page-home");
+      if (page && !document.getElementById("vvHome")) installHome(page);
+    }
+  });
+  mo.observe(document.body, {childList:true, subtree:true});
+}catch(e){}
+})();
+</script>
 
 </html>
