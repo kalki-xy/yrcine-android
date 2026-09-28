@@ -60,8 +60,8 @@ public class MainActivity extends BridgeActivity {
             "adskeeper.com", "adskeeper.co.uk", "directexpose.com",
             // video-ad servers (pre-rolls / overlays)
             "teads.tv", "springserve.com", "spotxchange.com", "spotx.tv",
-            "freewheel.tv", "freewheel.net", "servenobid.com", "vidazoo.com",
-            "aniview.com", "doubleverify.com", "moatads.com",
+            "freewheel.tv", "freewheel.net", "servenobid.com",
+            "doubleverify.com", "moatads.com",
             "adsafeprotected.com", "iasds01.com",
             // push-notification spam
             "onesignal.com", "notix.io", "gravitec.net", "sendpulse.com",
@@ -135,6 +135,9 @@ public class MainActivity extends BridgeActivity {
             s.setTextZoom(100);
             // v3.2: native ad shield rides on top of Capacitor's client
             wv.setWebViewClient(new AdBlockClient(bridge));
+            // v3.3: popups die at the native level (onCreateWindow unhandled -> dropped).
+            // This replaces the iframe sandbox approach, which broke embed playback.
+            s.setSupportMultipleWindows(true);
             CookieManager cm = CookieManager.getInstance();
             cm.setAcceptThirdPartyCookies(wv, true);
             wv.setHapticFeedbackEnabled(false);
