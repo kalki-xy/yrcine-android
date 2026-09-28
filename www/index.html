@@ -7332,4 +7332,166 @@ function note(){
 setInterval(function(){try{if(CV.APP.route.page==="settings")note()}catch(e){}},1000);
 })();
 </script>
+
+<style id="yrcine-vv-exact-css">
+/* ============================================================
+   YRcine v2.3 - VOIDVERSE-EXACT theme layer
+   Visual model: voidverse-exact.html (radial warm-dark bg,
+   Caveat display font, glass cards, pill chrome, outline TOP 10)
+   Pure CSS, additive, reversible.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0a0a08;
+  --bg-2:#0f0f0c;
+  --surf-1:#131311;
+  --surf-2:#1e1e1e;
+  --glass:rgba(20,19,17,.90);
+  --glass-border:rgba(255,255,255,.10);
+  --hairline:rgba(255,255,255,.10);
+  --hairline-2:rgba(255,255,255,.16);
+}
+
+/* ---------- page background: warm dark radial ---------- */
+html,body{
+  background:radial-gradient(120% 90% at 50% 0%, #171612 0%, #12110f 30%, #0a0a08 72%) #0a0a08 !important;
+  background-attachment:fixed !important;
+}
+
+/* ---------- app chrome ---------- */
+.topbar{
+  background:rgba(10,10,8,.82) !important;
+  border-bottom:1px solid rgba(255,255,255,.10) !important;
+}
+.bottombar{
+  left:12px !important;
+  right:12px !important;
+  bottom:10px !important;
+  border-radius:999px !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  border-top:1px solid rgba(255,255,255,.10) !important;
+  background:rgba(28,28,26,.92) !important;
+  box-shadow:0 8px 30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+/* ---------- pill buttons everywhere ---------- */
+.mv-srv{
+  border-radius:999px !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  background:rgba(255,255,255,.06) !important;
+}
+.mv-srv.on{
+  background:rgba(255,255,255,.14) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+/* ---------- glass content cards ---------- */
+.vcard,.otk-card,.cont-card{
+  border-radius:20px !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  background:linear-gradient(135deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 100%) !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  overflow:hidden;
+}
+
+/* ---------- Caveat display type on titles ---------- */
+.yr-ref-sec-title,
+#yrHomeV2 .yh-kick,
+.mv-h2,
+.mv-wtitle{
+  font-family:'Caveat', cursive !important;
+  font-weight:700 !important;
+  letter-spacing:0 !important;
+}
+.yr-ref-sec-title{font-size:32px !important;line-height:1 !important;color:#fff !important}
+#yrHomeV2 .yh-kick{font-size:26px !important;text-transform:none !important;letter-spacing:.02em !important}
+.mv-wtitle{font-size:34px !important;line-height:1.05 !important}
+.mv-h2{font-size:30px !important;line-height:1 !important;color:#fff !important}
+
+/* ---------- TOP 10: outlined display header ---------- */
+.yr-ref-section:has(.yr-top10-rail) .yr-ref-sec-title{
+  font-family:system-ui, -apple-system, sans-serif !important;
+  font-weight:900 !important;
+  font-size:42px !important;
+  line-height:1 !important;
+  letter-spacing:-.02em !important;
+  color:transparent !important;
+  -webkit-text-stroke:1.2px rgba(255,255,255,.28) !important;
+}
+.yr-ref-section:has(.yr-top10-rail) .yr-ref-sec-title span{
+  color:#9a9a95 !important;
+  -webkit-text-stroke:0 !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+  letter-spacing:.22em !important;
+  text-transform:uppercase !important;
+}
+
+/* ---------- TOP 10: rank number behind poster ---------- */
+html.yr-ref-v2 .yr-top10-card::before{
+  font-weight:900 !important;
+  font-size:180px !important;
+  line-height:.85 !important;
+  -webkit-text-stroke:1px rgba(255,255,255,.16) !important;
+  text-stroke:1px rgba(255,255,255,.16) !important;
+  top:-8px !important;
+  bottom:auto !important;
+  left:-2px !important;
+  opacity:.55;
+}
+.yr-top10-card{flex:0 0 176px !important;height:240px !important}
+.yr-top10-poster{
+  width:150px !important;
+  height:216px !important;
+  border-radius:20px !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+/* ---------- see-all links ---------- */
+.yr-ref-see{
+  font-family:'Caveat', cursive !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  color:#6a6a68 !important;
+}
+
+/* ---------- sticky nav pill ---------- */
+.yr-ref-nav{
+  background:#000 !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  border-radius:999px !important;
+  box-shadow:0 2px 20px rgba(0,0,0,.6) !important;
+}
+
+/* ---------- official domain pill ---------- */
+.yr-domain-pill{
+  border-radius:999px !important;
+  background:#1e1e1e !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+.yr-domain-copy small{
+  color:#6a6a68 !important;
+  font-size:10px !important;
+  letter-spacing:.18em !important;
+}
+.yr-domain-copy b{
+  font-family:'Caveat', cursive !important;
+  font-weight:500 !important;
+  font-size:17px !important;
+  color:#9a9a95 !important;
+  letter-spacing:.02em !important;
+}
+.yr-domain-btn{
+  background:#000 !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  border-radius:999px !important;
+  font-size:11px !important;
+  letter-spacing:.12em !important;
+}
+</style>
+
 </html>
