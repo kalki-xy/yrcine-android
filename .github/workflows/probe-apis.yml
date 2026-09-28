@@ -1,0 +1,48 @@
+name: Probe APIs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        run: |
+          UA='Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36'
+          EP='https://www.eporner.com/api/v2/video/search/?query=all&per_page=1&format=json'
+          GB='https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde'
+          R34='https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde'
+          RB='https://realbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=1&tags=blonde'
+          NH='https://nhentai.net/api/v2/search?query=english&page=1'
+          NHO='https://nhentai.net/api/galleries/search?query=english&page=1'
+          DB='https://danbooru.donmai.us/posts.json?tags=rating:explicit&limit=1'
+          E6='https://e621.net/posts.json?limit=1'
+          H3='https://3hentai.net/api/galleries/search?query=english&page=1'
+          probe() {
+            name="$1"; url="$2"
+            body=$(curl -s --max-time 25 -A "$UA" -H 'Accept: application/json' "$url" | head -c 110 | tr '\n' ' ')
+            echo "### $name"
+            echo "    $body"
+          }
+          enc() { python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$1"; }
+          echo "========== DIRECT =========="
+          probe "eporner" "$EP"
+          probe "gelbooru" "$GB"
+          probe "rule34" "$R34"
+          probe "realbooru" "$RB"
+          probe "nhentai-v2" "$NH"
+          probe "nhentai-old" "$NHO"
+          probe "danbooru" "$DB"
+          probe "e621" "$E6"
+          probe "3hentai" "$H3"
+          echo "========== VIA PROXIES =========="
+          for target in R34 NH GB DB; do
+            eval url=\$$target
+            probe "codetabs->$target" "https://api.codetabs.com/v1/proxy/?quest=$(enc "$url")"
+            probe "allorigins-raw->$target" "https://api.allorigins.win/raw?url=$(enc "$url")"
+            probe "cors.lol->$target" "https://api.cors.lol/?url=$(enc "$url")"
+            probe "corsproxy.io->$target" "https://corsproxy.io/?url=$(enc "$url")"
+            probe "cors.eu->$target" "https://cors.eu.org/$(enc "$url")"
+            probe "jina->$target" "https://r.jina.ai/$url"
+          done
