@@ -26,7 +26,7 @@ public class MainActivity extends BridgeActivity {
             wv.setVerticalScrollBarEnabled(false);
             // perf: keep the renderer at high priority while the app is visible so
             // Android stops killing it under memory pressure (the random reloads)
-            wv.setRendererPriorityPolicy(View.RENDERER_PRIORITY_IMPORTANT, false);
+            wv.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
             WebSettings s = wv.getSettings();
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
