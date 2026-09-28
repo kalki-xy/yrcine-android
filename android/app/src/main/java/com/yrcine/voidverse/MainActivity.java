@@ -24,13 +24,15 @@ public class MainActivity extends BridgeActivity {
             wv.setOverScrollMode(View.OVER_SCROLL_NEVER);
             wv.setHorizontalScrollBarEnabled(false);
             wv.setVerticalScrollBarEnabled(false);
+            // perf: keep the renderer at high priority while the app is visible so
+            // Android stops killing it under memory pressure (the random reloads)
+            wv.setRendererPriorityPolicy(View.RENDERER_PRIORITY_IMPORTANT, false);
             WebSettings s = wv.getSettings();
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
             s.setTextZoom(100);
-            // players: allow autoplay and keep embeds working
-            s.setMediaPlaybackRequiresUserGesture(false);
+            // players: keep embeds working
             CookieManager cm = CookieManager.getInstance();
             cm.setAcceptThirdPartyCookies(wv, true);
             wv.setHapticFeedbackEnabled(false);
