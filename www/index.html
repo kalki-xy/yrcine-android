@@ -7344,4 +7344,103 @@ try{
 try{if(!localStorage.getItem("yr30srvX")){localStorage.setItem("mv.srv","0");localStorage.setItem("yr30srvX","1")}}catch(e){}
 </script>
 
+
+/* ============================================================
+   YRcine v3.1 · GLASS — transparency + minimalism, app-wide.
+   One layer: translucent surfaces, blurred chrome, soft hairlines,
+   calmer type, pill controls. Cards stay blur-free (battery) —
+   translucency without the per-frame cost. User accent untouched.
+   ============================================================ */
+<style id="yrcine-v31-glass-css">
+/* ---- 1 · tokens: every surface in the app turns translucent ---- */
+:root{
+  --surf-1:rgba(23,22,19,.60)!important;
+  --surf-2:rgba(31,29,25,.48)!important;
+  --glass:rgba(13,13,11,.44)!important;
+  --glass-border:rgba(255,255,255,.075)!important;
+  --hairline:rgba(255,255,255,.06)!important;
+  --hairline-2:rgba(255,255,255,.14)!important;
+  --blur:blur(24px) saturate(150%)!important;
+  --el-1:0 1px 2px rgba(0,0,0,.30)!important;
+  --el-2:0 6px 24px rgba(0,0,0,.34)!important;
+  --el-3:0 14px 44px rgba(0,0,0,.42)!important;
+  --el-4:0 28px 80px rgba(0,0,0,.50)!important;
+  --grad:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.02))!important
+}
+/* ---- 2 · atmosphere: warm aurora depth behind the glass ---- */
+html:not(.v39wall){
+  background:
+    radial-gradient(1200px 800px at 18% -10%,rgba(255,190,120,.055),transparent 60%),
+    radial-gradient(1000px 700px at 85% 12%,rgba(255,120,160,.04),transparent 55%),
+    radial-gradient(1400px 900px at 50% 115%,rgba(120,160,255,.05),transparent 60%),
+    #0b0a09;
+  background-attachment:fixed
+}
+body{background:transparent!important}
+/* ---- 3 · chrome: real frosted glass (beats the perf guard) ---- */
+body .topbar,body .bottombar,body .sidebar,body .android-drawer{
+  background:rgba(14,13,11,.52)!important;
+  backdrop-filter:blur(24px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(150%)!important;
+  border-color:rgba(255,255,255,.07)!important
+}
+/* ---- 4 · cards & rails: quiet glass tiles, no blur cost ---- */
+.grid>*,.row-scroll>*{
+  background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:16px
+}
+.grid>*:hover,.row-scroll>*:hover{border-color:rgba(255,255,255,.10)}
+/* ---- 5 · inputs: quiet glass fields ---- */
+body input,body select,body textarea{
+  background:rgba(255,255,255,.045)!important;
+  border:1px solid rgba(255,255,255,.07)!important;
+  border-radius:12px!important
+}
+body input::placeholder{color:rgba(255,255,255,.28)!important}
+/* ---- 6 · controls: ghost pills, accent only when active ---- */
+.mv-srv,.chip{
+  background:transparent!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:999px!important;
+  color:var(--text-2)!important;
+  font-weight:600!important;
+  letter-spacing:.04em!important;
+  transition:all var(--dur-fast) var(--ease-out)
+}
+.mv-srv:hover,.chip:hover{border-color:rgba(255,255,255,.18)!important;color:var(--text-1)!important}
+.mv-srv.on,.chip.on,.chip.active{
+  background:var(--accent)!important;
+  color:#0d0c0a!important;
+  border-color:transparent!important
+}
+/* ---- 7 · toasts: glass pills ---- */
+#toasts>*{
+  background:rgba(20,19,16,.72)!important;
+  backdrop-filter:blur(20px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(150%)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  border-radius:14px!important
+}
+/* ---- 8 · modals: dim veil, blurred ---- */
+.modal{background:rgba(2,3,8,.55)!important}
+/* ---- 9 · minimal type ---- */
+.page-title{font-size:clamp(20px,3vw,26px);letter-spacing:-.02em;font-weight:600}
+.page-sub{opacity:.65}
+h1,h2,h3{letter-spacing:-.01em}
+/* ---- 10 · skeleton: calmer shimmer ---- */
+.skeleton{border-color:rgba(255,255,255,.04)!important;animation-duration:2s}
+/* ---- 11 · scrollbar: thin ghost ---- */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+/* ---- 12 · focus: one quiet ring ---- */
+:focus-visible{outline:1.5px solid rgba(255,255,255,.25);outline-offset:2px}
+/* ---- 13 · accessibility: honor reduced-transparency ---- */
+@media (prefers-reduced-transparency:reduce){
+  :root{--surf-1:#131211!important;--surf-2:#1a1917!important;--glass:rgba(10,10,9,.92)!important}
+  body .topbar,body .bottombar,body .sidebar,body .android-drawer{background:rgba(12,12,10,.96)!important}
+}
+</style>
+
 </html>
