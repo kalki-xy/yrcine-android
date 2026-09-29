@@ -1,0 +1,46 @@
+name: Probe Renpy Loader
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Linux; Android 13) Chrome/126.0 Mobile"
+          for f in renpy-pre.js renpy.js index.html; do
+            curl -sL --max-time 90 -A "$UA" "https://content-cdn.adultgames.games/games-html/208928/$f" -o "out/$f" -w "$f http=%{http_code} size=%{size_download}\n"
+          done
+          python3 << 'PYEOF'
+          import re, os
+          rep = open("out/loader_report.txt", "w")
+          for f in ["renpy-pre.js", "renpy.js", "index.html"]:
+              if not os.path.exists("out/" + f) or os.path.getsize("out/" + f) == 0: 
+                  rep.write(f"{f}: MISSING/EMPTY\n"); continue
+              s = open("out/" + f, encoding="utf-8", errors="ignore").read()
+              rep.write(f"\n===== {f}: {len(s)} bytes\n")
+              # what does it fetch/load?
+              for pat, label in [
+                  (r'["\']([a-zA-Z0-9_\-./]+\.(?:data|zip|wasm|json|js|pak|rpa|bytes|unityweb))["\']', "file refs"),
+                  (r'fetch\(\s*["\']([^"\']+)', "fetch()"),
+                  (r'\bXMLHttpRequest\b', "XHR"),
+                  (r'"(game[^"]*)"', "game refs"),
+                  (r'locateFile\s*[:=]\s*function[^{]*{[^}]*return\s*["\']([^"\']+)', "locateFile"),
+                  (r'preload(?:File|Data)', "preload"),
+                  (r'Range', "range header"),
+              ]:
+                  hits = re.findall(pat, s)
+                  if hits:
+                      u = sorted(set(hits))[:25]
+                      rep.write(f"  {label}: {len(hits)} -> {u}\n")
+              
+          rep.close()
+          PYEOF
+          cat out/loader_report.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe3
+          path: out/
