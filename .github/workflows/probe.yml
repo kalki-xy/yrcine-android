@@ -1,0 +1,59 @@
+name: Probe Game Files
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe
+        run: |
+          mkdir -p out
+          {
+          echo "=== CORS headers on content-cdn (game file) ==="
+          curl -sI -A "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36" \
+            -H "Origin: https://yrcine.local" \
+            "https://content-cdn.adultgames.games/games-html/208928/play.html" | head -25
+          echo "=== CORS headers on image ==="
+          curl -sI -A "Mozilla/5.0" -H "Origin: https://yrcine.local" \
+            "https://content-cdn.adultgames.games/images/games/208928.jpg" | head -20
+          } > out/cors.txt 2>&1
+
+          for gid in 208928 208930 208734 7424 100066; do
+            echo "=== game $gid ==="
+            curl -sL --max-time 60 -A "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36" \
+              "https://content-cdn.adultgames.games/games-html/$gid/play.html" -o "out/game_$gid.html" -w "http=%{http_code} size=%{size_download}\n"
+          done
+
+          python3 << 'PYEOF'
+          import re, os
+          rep = open("out/report.txt", "w")
+          for gid in ["208928", "208930", "208734", "7424", "100066"]:
+              f = f"out/game_{gid}.html"
+              if not os.path.exists(f): continue
+              s = open(f, encoding="utf-8", errors="ignore").read()
+              rep.write(f"\n===== GAME {gid}: {len(s)} bytes\n")
+              t = re.search(r"<title>([^<]*)</title>", s)
+              rep.write(f"title: {t.group(1) if t else None}\n")
+              for pat, label in [
+                  (r'<script[^>]*src="([^"]+)"', "script src"),
+                  (r'<link[^>]*href="([^"]+)"', "link href"),
+                  (r'<img[^>]*src="([^"]+)"', "img src"),
+                  (r'<iframe[^>]*src="([^"]+)"', "iframe src"),
+                  (r'fetch\(["\']([^"\')]+)', "fetch()"),
+                  (r'(?:src|href|url)[=:"\']\s*["\']?([^"\'\s]+\.(?:js|png|jpg|jpeg|webp|mp3|ogg|wav|json|wasm|data|jpe|unityweb))', "asset ref"),
+              ]:
+                  hits = re.findall(pat, s)
+                  if hits:
+                      rep.write(f"  {label}: {len(hits)} -> {hits[:8]}\n")
+              inline = [len(m) for m in re.findall(r"<script(?![^>]*src)[^>]*>([\s\S]*?)</script>", s)]
+              rep.write(f"  inline scripts: {len(inline)} blocks, total {sum(inline)} bytes\n")
+              rep.write(f"  engine markers: {[m for m in ['unity', 'c2runtime', 'c3runtime', 'godot', 'pixi', 'phaser', 'renpy', 'ruffle'] if m in s.lower()]}\n")
+          rep.close()
+          PYEOF
+          cat out/report.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-probe
+          path: out/
