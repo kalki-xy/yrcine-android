@@ -1,0 +1,30 @@
+name: Probe Native + Manifests
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect native files
+        run: |
+          mkdir -p out
+          cp android/app/src/main/java/com/yrcine/voidverse/MainActivity.java out/ 2>/dev/null || echo "no MainActivity" > out/MainActivity.java
+          cp android/app/src/main/AndroidManifest.xml out/ 2>/dev/null || echo "no manifest" > out/AndroidManifest.xml
+          find android -name "*.gradle" -o -name "network_security_config.xml" | head -20 > out/gradle_files.txt
+          cat android/app/build.gradle >> out/gradle_files.txt 2>/dev/null
+          cp android/app/capacitor.build.gradle out/capacitor.build.gradle 2>/dev/null || true
+          cp android/app/src/main/res/xml/network_security_config.xml out/ 2>/dev/null || true
+      - name: Probe renpy manifests
+        run: |
+          for gid in 208928 208734; do
+            curl -sL --max-time 60 -A "Mozilla/5.0 (Linux; Android 13) Chrome/126.0 Mobile" \
+              "https://content-cdn.adultgames.games/games-html/$gid/manifest.json" -o "out/manifest_$gid.json" -w "manifest $gid http=%{http_code} size=%{size_download}\n"
+            head -c 600 "out/manifest_$gid.json" > "out/manifest_${gid}_head.txt"; echo >> "out/manifest_${gid}_head.txt"
+          done
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe2
+          path: out/
