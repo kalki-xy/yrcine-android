@@ -1,0 +1,88 @@
+name: Harvest Games Catalog
+on:
+  workflow_dispatch:
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Fetch and parse
+        run: |
+          mkdir -p out
+          python3 << 'PYEOF'
+          import subprocess, re, json, time, hashlib
+
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+          def curl(url, extra=None):
+              cmd = ["curl", "-sL", "--max-time", "40", "--compressed", "-A", UA,
+                     "-H", "Accept: text/html,application/xhtml+xml", "-H", "Accept-Language: en-US,en;q=0.9"]
+              if extra: cmd += extra
+              cmd += [url]
+              r = subprocess.run(cmd, capture_output=True, text=True)
+              return r.stdout or ""
+
+          def spn(url):
+              r = subprocess.run(["curl", "-sL", "--max-time", "60", "-A", "Mozilla/5.0",
+                                  f"https://web.archive.org/save/{url}"], capture_output=True, text=True)
+              return r.stdout or ""
+
+          def get(url, use_spn=False):
+              h = curl(url)
+              if "games-html" in h or "images/games" in h or "play-game/" in h:
+                  return h
+              for relay in [f"https://api.allorigins.win/raw?url={url}",
+                            f"https://api.codetabs.com/v1/proxy?quest={url}"]:
+                  h = curl(relay)
+                  if "games-html" in h or "images/games" in h or "play-game/" in h:
+                      return h
+              if use_spn:
+                  h = spn(url)
+                  if "games-html" in h or "images/games" in h:
+                      return h
+              return ""
+
+          cat = {}   # slug -> {id, t}
+          # 1) full catalog pages /all/1../all/12
+          for n in range(1, 13):
+              h = get(f"https://adultgames.games/all/{n}")
+              pairs = re.findall(r'play-game/([a-z0-9\-]+)"[^>]*>\s*<img[^>]*images/games/(\d+)\.jpg[^>]*alt="([^"]*)"', h)
+              for s, g, t in pairs: cat[s] = {"id": g, "t": t}
+              print(f"all/{n}: {len(pairs)} cards (total {len(cat)})", flush=True)
+              time.sleep(2)
+          # 2) popular + best grids for good measure
+          for pg in ["popular-games", "best-games"]:
+              h = get(f"https://adultgames.games/{pg}")
+              pairs = re.findall(r'play-game/([a-z0-9\-]+)"[^>]*>\s*<img[^>]*images/games/(\d+)\.jpg[^>]*alt="([^"]*)"', h)
+              for s, g, t in pairs: cat.setdefault(s, {"id": g, "t": t})
+          json.dump(cat, open("out/adg_catalog.json", "w"))
+
+          # 3) priority slugs whose ids we still need (play pages contain games-html/<id>)
+          prio = ["succubus-advent-the-ethereal-collapse","an-unconventional-school","anime-hot-resort","sister-sister-sister","lustful-college","re-maid","defense-against-the-dark-arts","a-long-summer","photo-hunt","once-a-porn-a-time","polarity","make-love-not-waagh","a-wifes-loyalty","the-last-contestant","lucky-monster","welcum-to-the-city","forgotten-pathways","dragon-girl-x-universe","in-for-a-penny","hentai-university","beyond-persona","distant-horizon","first-day-primer-dia","the-guy-in-charge","olivine-lights","devil-layer"]
+          resolved = {}
+          for s in prio:
+              if s in cat: continue
+              h = get(f"https://adultgames.games/play-game/{s}", use_spn=(s in prio[:6]))
+              m = re.search(r'games-html/(\d+)/play\.html', h)
+              if m: resolved[s] = m.group(1); print("resolved:", s, m.group(1), flush=True)
+              time.sleep(2)
+          json.dump(resolved, open("out/adg_priority_ids.json", "w"))
+
+          # 4) xxxgames.games structure + games
+          xxx = {}
+          for s in ["back-to-the-past","attack-on-sluts","garden-of-venus","orange-smash"]:
+              h = get(f"https://xxxgames.games/start/{s}")
+              info = {"size": len(h)}
+              for pat, key in [(r'games-html/(\d+)/play\.html', "adg_cdn_id"),
+                               (r'(https?://[^"\'\s]+/(?:games|play|embed|start)/[^"\'\s]*)', "candidate_urls")]:
+                  m = re.findall(pat, h)
+                  if m: info[key] = m[:5]
+              xxx[s] = info
+              time.sleep(2)
+          json.dump(xxx, open("out/xxx_structure.json", "w"), indent=1)
+          print("DONE. catalog:", len(cat), "priority resolved:", len(resolved), flush=True)
+          PYEOF
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: games-harvest
+          path: out/
