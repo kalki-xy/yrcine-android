@@ -1,0 +1,38 @@
+name: probe13
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: mangadex + eporner + tmdb schedule shapes
+        run: |
+          mkdir -p out
+          K="20be784f740b6b638c906dde5b35efae"
+          # 1) MangaDex list (manhwa = ko)
+          curl -s --max-time 25 "https://api.mangadex.org/manga?limit=3&order%5BfollowedCount%5D=desc&includes%5B%5D=cover_art&originalLanguage%5B%5D=ko&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive" -o out/md_list.json
+          # 2) chapters feed for first result
+          MDID=$(python3 -c "import json;print(json.load(open('out/md_list.json'))['data'][0]['id'])")
+          curl -s --max-time 25 "https://api.mangadex.org/manga/$MDID/feed?order%5Bchapter%5D=desc&limit=5&translatedLanguage%5B%5D=en" -o out/md_feed.json
+          # 3) at-home server for first chapter
+          CHID=$(python3 -c "import json;print(json.load(open('out/md_feed.json'))['data'][0]['id'])")
+          curl -s --max-time 25 "https://api.mangadex.org/at-home/server/$CHID" -o out/md_home.json
+          # 4) Eporner API
+          curl -sL --max-time 25 -A "Mozilla/5.0" "https://www.eporner.com/api/v2/video/search/?query=all&per_page=3&format=json&order=latest&thumbsize=big&lq=0" -o out/ep_search.json
+          # 5) Eporner embed page alive
+          EPI=$(python3 -c "import json;print(json.load(open('out/ep_search.json'))['videos'][0]['id'])")
+          curl -sL --max-time 20 -A "Mozilla/5.0" -o /dev/null -w "ep-embed %{http_code} %{size_download}\n" "https://www.eporner.com/embed/$EPI/"
+          # 6) TMDB schedule: on_the_air + a detail with next_episode_to_air
+          curl -s --max-time 20 "https://api.themoviedb.org/3/tv/on_the_air?api_key=$K&language=en-US&page=1" -o out/tmdb_air.json
+          python3 - << 'PY'
+          import json, urllib.request
+          d = json.load(open('out/tmdb_air.json'))
+          ja = [r for r in d['results'] if r.get('original_language') == 'ja' and 16 in (r.get('genre_ids') or [])]
+          print('ja airing:', len(ja))
+          if ja:
+              r = urllib.request.urlopen('https://api.themoviedb.org/3/tv/%d?api_key=20be784f740b6b638c906dde5b35efae' % ja[0]['id'], timeout=20)
+              det = json.load(r)
+              open('out/tmdb_detail.json','w').write(json.dumps(det))
+              print('detail:', det['name'], '| next_ep:', det.get('next_episode_to_air'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe13, path: out/}
