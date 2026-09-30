@@ -1,0 +1,9 @@
+name: probe19
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: dump MainActivity
+        run: cat android/app/src/main/java/com/yrcine/voidverse/MainActivity.java
