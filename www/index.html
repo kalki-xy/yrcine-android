@@ -498,38 +498,53 @@ function ensureOverlay() {
   ov.id = "yrEpNetOverlay";
   ov.className = "yr55-modal";
   ov.style.cssText = "position:absolute;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,9,12,.96);text-align:center;padding:24px;";
-  ov.innerHTML = '<div style="font:800 13px ui-sans-serif;color:#fda4af;letter-spacing:.8px">EPORNER BLOCKED ON THIS NETWORK</div>'
-    + '<div style="margin-top:10px;font:500 12px/1.6 ui-sans-serif;color:rgba(255,255,255,.55);max-width:320px">The video grid loads through your Vercel proxy, but the player itself connects to eporner.com directly - and your network is blocking it.</div>'
-    + '<div style="margin-top:8px;font:600 12px/1.6 ui-sans-serif;color:#c7d2fe">Turn ON your VPN, then tap RETRY.</div>'
-    + '<button id="yrEpRetryBtn" style="margin-top:16px;background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.6);color:#c7d2fe;border-radius:10px;padding:10px 26px;font:700 13px ui-sans-serif;cursor:pointer">RETRY</button>';
+  ov.innerHTML = '<div style="font:800 13px ui-sans-serif;color:#fda4af;letter-spacing:.8px">EPORNER CONNECTION REPORT</div>'
+    + '<div id="yrEpDomList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;min-width:200px"></div>'
+    + '<div style="margin-top:12px;font:500 11px/1.6 ui-sans-serif;color:rgba(255,255,255,.5);max-width:320px">The grid loads through your Vercel proxy, but the player connects to these eporner servers directly from your phone. Any BLOCKED line above = that part of playback is dead on this network.</div>'
+    + '<div style="margin-top:6px;font:600 12px/1.6 ui-sans-serif;color:#c7d2fe">Try a different VPN server, then RETRY.</div>'
+    + '<div style="margin-top:16px;display:flex;gap:10px">'
+    + '<button id="yrEpRetryBtn" style="background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.6);color:#c7d2fe;border-radius:10px;padding:10px 22px;font:700 13px ui-sans-serif;cursor:pointer">RETRY</button>'
+    + '<button id="yrEpDismissBtn" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:10px;padding:10px 22px;font:700 13px ui-sans-serif;cursor:pointer">DISMISS</button>'
+    + '</div>';
   var frameWrap = $("yrEpFrame");
   var host = frameWrap && frameWrap.parentElement;
   if (host) host.appendChild(ov); else modal.appendChild(ov);
+  var rb = ov.querySelector("#yrEpRetryBtn");
+  if (rb) rb.onclick = function () { if (lastEpId) { $("yrEpFrame").src = "https://www.eporner.com/embed/" + lastEpId + "/"; } window.__yrEpCheck(lastEpId); };
+  var dbtn = ov.querySelector("#yrEpDismissBtn");
+  if (dbtn) dbtn.onclick = function () { ov.style.display = "none"; };
   return ov;
 }
 window.__yrEpCheck = function (id) {
   lastEpId = id;
   var ov = ensureOverlay();
   if (ov) ov.style.display = "none";
-  Promise.all([probe("https://www.eporner.com/favicon.ico"), probe("https://voidanime-backend.vercel.app/")]).then(function (r) {
-    var epOk = r[0] === true;
-    var netOk = r[1] === true;
+  var domains = [
+    ["SITE", "https://www.eporner.com/favicon.ico"],
+    ["PLAYER CDN", "https://static-ca-cdn.eporner.com/favicon.ico"],
+    ["VIDEO CDN", "https://gvideo.eporner.com/favicon.ico"]
+  ];
+  Promise.all(domains.map(function (d) {
+    return Promise.race([
+      fetch(d[1], { mode: "no-cors", cache: "no-store" }).then(function () { return "ok"; }, function () { return "blocked"; }),
+      new Promise(function (res) { setTimeout(function () { res("timeout"); }, 8000); })
+    ]);
+  })).then(function (r) {
     var o = ensureOverlay();
     if (!o) return;
-    if (!epOk) {
-      if (!netOk) {
-        o.querySelector("div").textContent = "NETWORK OFFLINE";
-        o.style.display = "flex";
-      } else {
-        o.style.display = "flex";
-      }
-    }
+    var anyBad = r.some(function (x) { return x !== "ok"; });
+    if (!anyBad) { o.style.display = "none"; return; }
+    var list = o.querySelector("#yrEpDomList");
+    if (!list) return;
+    list.innerHTML = domains.map(function (d, i) {
+      var st = r[i] === "ok" ? "OK" : "BLOCKED";
+      var col = r[i] === "ok" ? "#6ee7b7" : "#fda4af";
+      return "<div style=\"display:flex;justify-content:space-between;gap:12px;font:600 11px ui-monospace,monospace;color:rgba(255,255,255,.6)\"><span>" + d[0] + "</span><span style=\"color:" + col + "\"><span>" + st + "</span></span></div>";
+    }).join("");
+    o.style.display = "flex";
   });
 };
-document.addEventListener("DOMContentLoaded", function () {
-  var b = $("yrEpRetryBtn");
-  if (b) b.onclick = function () { if (lastEpId) { $("yrEpFrame").src = "https://www.eporner.com/embed/" + lastEpId + "/"; } window.__yrEpCheck(lastEpId); };
-});
+
 })();</script>
 <style>
 <style id="yr-twc">
@@ -4503,8 +4518,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.6.0";
-try { localStorage.setItem("yrc.ver", "5.6.0"); } catch(e){}
+window.YR_VERSION = "5.7.0";
+try { localStorage.setItem("yrc.ver", "5.7.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4529,7 +4544,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.6";
+    tag.textContent = "v5.7";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
