@@ -28,7 +28,8 @@
 /* ===== v5.0: minimalist glass slidebar ===== */
 /* panel: true glass - translucent, deep blur, hairline edge */
 /* v5.2: zero GPU filters - heavy backdrop blur froze rendering on low-end devices. Flat translucent panel. */
-aside#slidebarDrawer { background: rgba(13,14,20,.9); border-right: 1px solid rgba(255,255,255,.08); box-shadow: 18px 0 48px rgba(0,0,0,.4); }
+aside#slidebarDrawer { background: rgba(13,14,20,.92); border-right: 1px solid rgba(255,255,255,.08); box-shadow: 18px 0 48px rgba(0,0,0,.4); }
+#slidebarDrawer > * { position: relative; z-index: 1; }
 #slidebarBackdrop { background: rgba(0,0,0,.45); }
 
 /* header: strip chrome, hairline only */
@@ -115,13 +116,13 @@ aside#slidebarDrawer .no-scrollbar { padding: 22px 14px !important; }
 aside#slidebarDrawer .space-y-6 > * + * { margin-top: 26px !important; }
 aside#slidebarDrawer button { box-shadow: none !important; }
 </style><style id="yrcine-v55-css">
-/* v5.5: TMDB ambient wallpaper - sits behind everything, scrim keeps text readable */
-body { background-color: transparent !important; }
-#yrBgWallA, #yrBgWallB { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center 18%; opacity: 0; transition: opacity 1600ms ease; pointer-events: none; }
-#yrBgScrim { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(7,7,9,.74), rgba(7,7,9,.87)); }
+/* v5.9: TMDB auto-changing wallpaper lives INSIDE the side drawer - page stays clean dark */
+#yrDrawerBg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; border-radius: inherit; }
+#yrDrawerBg .bgA, #yrDrawerBg .bgB { position: absolute; inset: 0; background-size: cover; background-position: center 18%; opacity: 0; transition: opacity 1200ms ease; }
+#yrDrawerBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,7,9,.62), rgba(7,7,9,.82)); }
 /* v5.5: drawer content glide - panel slides while contents ease in behind it */
-#slidebarDrawer > * { transition: transform 480ms cubic-bezier(0.32,0.72,0,1) 40ms, opacity 300ms ease !important; }
-#slidebarDrawer.-translate-x-full > * { opacity: 0; transform: translateX(-18px); }
+#slidebarDrawer > *:not(#yrDrawerBg) { transition: transform 480ms cubic-bezier(0.32,0.72,0,1) 40ms, opacity 300ms ease !important; }
+#slidebarDrawer.-translate-x-full > *:not(#yrDrawerBg) { opacity: 0; transform: translateX(-18px); }
 </style>
 <script id="yrcine-v5-slidebar-js">
 (function () {
@@ -260,18 +261,26 @@ function render() {
 }
 window.__yrRenderProfile = render;
 
-/* ---------- wallpaper ---------- */
-var wallCur = null, wallA = document.createElement("div"), wallB = document.createElement("div"), scrim = document.createElement("div");
-wallA.id = "yrBgWallA"; wallB.id = "yrBgWallB"; scrim.id = "yrBgScrim";
+/* ---------- wallpaper (v5.9: inside the drawer) ---------- */
+var wallCur = null, wallA = null, wallB = null;
 window.__yrSetWall = function (url) {
   if (!url || url === wallCur) return; wallCur = url;
-  var show = wallA.style.opacity === "1" ? wallB : wallA, hide = show === wallA ? wallB : wallA;
+  var host = $("yrDrawerBg");
+  if (!host) return;
+  var show = host.querySelector(".bgA"), hide = host.querySelector(".bgB");
+  if (show.style.opacity === "1") { var t = show; show = hide; hide = t; }
   var img = new Image();
   img.onload = function () { show.style.backgroundImage = 'url("' + url + '")'; show.style.opacity = "1"; hide.style.opacity = "0"; };
   img.src = url;
 };
 function initWall() {
-  document.body.appendChild(wallA); document.body.appendChild(wallB); document.body.appendChild(scrim);
+  var drawer = document.getElementById("slidebarDrawer");
+  if (drawer && !$("yrDrawerBg")) {
+    var host = document.createElement("div");
+    host.id = "yrDrawerBg";
+    host.innerHTML = '<div class="bgA"></div><div class="bgB"></div>';
+    drawer.insertBefore(host, drawer.firstChild);
+  }
   var heroBox = $("heroBackdropContainer");
   if (heroBox && window.MutationObserver) {
     new MutationObserver(function () { var im = heroBox.querySelector("img"); if (im && im.src) window.__yrSetWall(im.src); })
@@ -873,7 +882,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
 <!-- SLIDE BAR DRAWER BACKDROP & PANEL -->
 <div id="slidebarBackdrop" class="fixed inset-0 z-[130] opacity-0 pointer-events-none transition-opacity duration-[420ms]"></div>
 
-<aside id="slidebarDrawer" style="background:rgba(13,14,20,.97)" class="fixed top-0 bottom-0 left-0 z-[135] flex w-[330px] max-w-[85vw] -translate-x-full flex-col text-white transition-transform duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]">
+<aside id="slidebarDrawer" class="fixed top-0 bottom-0 left-0 z-[135] flex w-[330px] max-w-[85vw] -translate-x-full flex-col text-white transition-transform duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]">
   <!-- Slide Bar Header -->
   <div class="flex items-center justify-between border-b border-white/10 px-5 py-4 bg-white/[0.02]">
     <div class="flex items-center gap-3">
@@ -4528,8 +4537,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.8.0";
-try { localStorage.setItem("yrc.ver", "5.8.0"); } catch(e){}
+window.YR_VERSION = "5.9.0";
+try { localStorage.setItem("yrc.ver", "5.9.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4554,7 +4563,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.8";
+    tag.textContent = "v5.9";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
