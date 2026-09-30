@@ -27,14 +27,18 @@
 <style id="yrcine-v5-slidebar-css">
 /* ===== v5.0: minimalist glass slidebar ===== */
 /* panel: true glass - translucent, deep blur, hairline edge */
-aside#slidebarDrawer {
-  background: rgba(13,14,20,.52);
+/* glass lives on a decorative non-interactive layer so tap hit-testing can never break (older WebView bug) */
+aside#slidebarDrawer { background: rgba(13,14,20,.55); }
+aside#slidebarDrawer::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: rgba(13,14,20,.35);
   backdrop-filter: blur(28px) saturate(150%);
   -webkit-backdrop-filter: blur(28px) saturate(150%);
   border-right: 1px solid rgba(255,255,255,.07);
   box-shadow: 18px 0 48px rgba(0,0,0,.4);
 }
-#slidebarBackdrop { background: rgba(0,0,0,.35); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+aside#slidebarDrawer > * { position: relative; z-index: 1; }
+#slidebarBackdrop { background: rgba(0,0,0,.4); }
 
 /* header: strip chrome, hairline only */
 aside#slidebarDrawer > div:first-child {
@@ -152,10 +156,30 @@ function polish() {
     el.className = keep.join(" ");
   });
 }
+function yr5Close() {
+  var dr = document.getElementById("slidebarDrawer"), bd = document.getElementById("slidebarBackdrop");
+  if (!dr || !bd) return;
+  var ok = false;
+  try { if (window.closeSlidebar) { window.closeSlidebar(); ok = true; } } catch (e) {}
+  if (!ok || !dr.className.includes("-translate-x-full")) {
+    bd.classList.remove("opacity-100", "pointer-events-auto");
+    bd.classList.add("opacity-0", "pointer-events-none");
+    dr.classList.remove("translate-x-0");
+    dr.classList.add("-translate-x-full");
+    window.__yrScrollLock = Math.max(0, (window.__yrScrollLock || 0) - 1);
+    if (!window.__yrScrollLock) document.body.style.overflow = "";
+  }
+}
 function arm() {
   polish();
   /* their audio toggle rewrites the status label classes - keep badges quiet */
   document.getElementById("drawerAudioToggleBtn") && document.getElementById("drawerAudioToggleBtn").addEventListener("click", function () { setTimeout(polish, 60); });
+  /* bulletproof close: direct onclick on X + backdrop + Escape - works even if the design's own binding never ran or its sound-effect call throws */
+  var xb = document.getElementById("closeSlidebarBtn");
+  var bdb = document.getElementById("slidebarBackdrop");
+  if (xb) xb.onclick = yr5Close;
+  if (bdb) bdb.onclick = function (e) { if (e.target === bdb) yr5Close(); };
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") yr5Close(); });
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm);
 else arm();
@@ -4127,8 +4151,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.0.0";
-try { localStorage.setItem("yrc.ver", "5.0.0"); } catch(e){}
+window.YR_VERSION = "5.1.0";
+try { localStorage.setItem("yrc.ver", "5.1.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4153,7 +4177,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.0";
+    tag.textContent = "v5.1";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
