@@ -1,0 +1,19 @@
+name: probe4
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: TMDB probe
+        run: |
+          echo "--- direct key"
+          curl -s --max-time 25 "https://api.themoviedb.org/3/trending/all/day?api_key=db55323b8d3e4154498a75642b381" | head -c 400; echo
+          echo "--- key via header"
+          curl -s --max-time 25 -H "Authorization: Bearer db55323b8d3e4154498a75642b381" "https://api.themoviedb.org/3/trending/all/day" | head -c 400; echo
+          echo "--- alternate endpoints"
+          curl -s --max-time 25 "https://api.themoviedb.org/3/movie/popular?api_key=db55323b8d3e4154498a75642b381&page=1" | head -c 300; echo
+      - name: save log
+        run: |
+          { echo "--- direct key"; curl -s --max-time 25 "https://api.themoviedb.org/3/trending/all/day?api_key=db55323b8d3e4154498a75642b381" | head -c 2000; echo; } > probe.txt || true
+      - uses: actions/upload-artifact@v4
+        with: {name: probe4, path: probe.txt}
