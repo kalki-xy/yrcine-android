@@ -201,6 +201,29 @@ public class MainActivity extends BridgeActivity {
         super.onBackPressed();
     }
 
+    /* v5.5: Discord OAuth callback - browser redirects to yrcine://callback#access_token
+       and the token is handed to the page here (runs natively, no JS dependency). */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        try {
+            Uri data = intent.getData();
+            if (data != null && "yrcine".equals(data.getScheme()) && mainWv != null) {
+                final String uri = data.toString();
+                mainWv.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mainWv.evaluateJavascript(
+                                "window.__yrDcToken && window.__yrDcToken("
+                                        + org.json.JSONObject.quote(uri) + ")",
+                                null);
+                    }
+                });
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     /* ================= v3.9: offline game store + loopback server ================= */
 
     private void startGameServer() {

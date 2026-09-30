@@ -114,6 +114,14 @@ aside#slidebarDrawer .mb-2\.5 {
 aside#slidebarDrawer .no-scrollbar { padding: 22px 14px !important; }
 aside#slidebarDrawer .space-y-6 > * + * { margin-top: 26px !important; }
 aside#slidebarDrawer button { box-shadow: none !important; }
+</style><style id="yrcine-v55-css">
+/* v5.5: TMDB ambient wallpaper - sits behind everything, scrim keeps text readable */
+body { background-color: transparent !important; }
+#yrBgWallA, #yrBgWallB { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center 18%; opacity: 0; transition: opacity 1600ms ease; pointer-events: none; }
+#yrBgScrim { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(7,7,9,.74), rgba(7,7,9,.87)); }
+/* v5.5: drawer content glide - panel slides while contents ease in behind it */
+#slidebarDrawer > * { transition: transform 480ms cubic-bezier(0.32,0.72,0,1) 40ms, opacity 300ms ease !important; }
+#slidebarDrawer.-translate-x-full > * { opacity: 0; transform: translateX(-18px); }
 </style>
 <script id="yrcine-v5-slidebar-js">
 (function () {
@@ -182,7 +190,7 @@ function arm() {
     var dr = document.getElementById("slidebarDrawer");
     if (!dr || dr.className.includes("-translate-x-full")) return;
     var t = e.target;
-    if (t && t.closest && (t.closest("#slidebarDrawer") || t.closest("#islandBrandBtn"))) return;
+    if (t && t.closest && (t.closest("#slidebarDrawer") || t.closest("#islandBrandBtn") || t.closest('[class*="modal"]') || t.closest('[id*="odal"]') || t.closest("[data-yrnoguard]"))) return;
     yr5Close();
   }
   document.addEventListener("touchstart", yr5TapGuard, true);
@@ -202,7 +210,7 @@ function arm() {
         if (yrGhostTimer) clearTimeout(yrGhostTimer);
         yrGhostTimer = setTimeout(function () {
           if (yrDrawer.className.indexOf("-translate-x-full") !== -1) yrDrawer.style.display = "none";
-        }, 350);
+        }, 480);
       } else {
         if (yrGhostTimer) { clearTimeout(yrGhostTimer); yrGhostTimer = null; }
         yrDrawer.style.display = "";
@@ -214,7 +222,264 @@ function arm() {
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm);
 else arm();
 })();
-</script>
+</script><script id="yrcine-v55-js">(function () {
+"use strict";
+var QQ = String.fromCharCode(34);
+var SYNC_URL = "https://voidanime-backend.vercel.app/api/sync";
+var LS = { name: "yrc.pName", avatar: "yrc.pAvatar", banner: "yrc.pBanner", sess: "yrc.dcSess", cid: "yrc.dcClient" };
+function ls(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function sess() { try { return JSON.parse(ls(LS.sess, "null")); } catch (e) { return null; } }
+function setSess(x) { lsSet(LS.sess, x ? JSON.stringify(x) : "null"); }
+function isApp() { return !/^https?:$/.test(location.protocol) || /localhost|127\.0\.0\.1/.test(location.host); }
+function redirectUri() { return isApp() ? "yrcine://callback" : location.origin + location.pathname; }
+function $(id) { return document.getElementById(id); }
+function escAttr(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+function setStatus(t) { var el = $("yrPStatus"); if (!el) return; if (!t) { el.className = "hidden"; el.textContent = ""; return; } el.className = "mt-2 text-[10px] font-mono text-white/40"; el.textContent = t; }
+
+/* ---------- render profile card ---------- */
+var GRADS = ["linear-gradient(120deg,#6366f1,#ec4899)", "linear-gradient(120deg,#0ea5e9,#22d3ee)", "linear-gradient(120deg,#f59e0b,#ef4444)", "linear-gradient(120deg,#10b981,#84cc16)", "linear-gradient(120deg,#8b5cf6,#d946ef)", "linear-gradient(120deg,#f43f5e,#f97316)"];
+var AVGRADS = ["linear-gradient(135deg,#312e81,#7c3aed)", "linear-gradient(135deg,#0c4a6e,#0ea5e9)", "linear-gradient(135deg,#7f1d1d,#f43f5e)", "linear-gradient(135deg,#064e3b,#10b981)", "linear-gradient(135deg,#581c87,#db2777)", "linear-gradient(135deg,#92400e,#f59e0b)", "linear-gradient(135deg,#334155,#94a3b8)", "linear-gradient(135deg,#111827,#374151)"];
+function avIndex() { var n = 0; var nm = ls(LS.name, ""); for (var i = 0; i < nm.length; i++) n = (n + nm.charCodeAt(i)) % AVGRADS.length; return n; }
+function render() {
+  var s = sess();
+  var nameEl = $("yrPName"), subEl = $("yrPSub"), img = $("yrPAvatar"), init = $("yrPAvInit"), bnEl = $("yrPBanner"), lb = $("yrDcLogin");
+  if (!nameEl || !subEl || !img || !init || !bnEl || !lb) return;
+  var nm = ls(LS.name, "") || (s ? s.username : "") || "Guest Viewer";
+  nameEl.textContent = nm;
+  subEl.textContent = s ? ("DISCORD - " + s.username + (lastSnap ? " - SYNCED" : " - SYNC READY")) : "LOCAL PROFILE - NOT SYNCED";
+  var av = ls(LS.avatar, "");
+  var discordAv = s && s.avatar ? ("https://cdn.discordapp.com/avatars/" + s.id + "/" + s.avatar + ".png?size=128") : "";
+  var useAv = av || discordAv;
+  if (useAv && useAv.slice(0, 5) !== "grad:") { img.style.backgroundImage = "url(" + QQ + useAv + QQ + ")"; img.style.display = ""; init.style.display = "none"; }
+  else { img.style.display = "none"; init.style.display = ""; init.textContent = (nm[0] || "G").toUpperCase(); init.style.background = useAv ? AVGRADS[+useAv.slice(5) % AVGRADS.length] : AVGRADS[avIndex()]; }
+  var bn = ls(LS.banner, "");
+  bnEl.style.background = bn || GRADS[0];
+  bnEl.style.backgroundSize = "cover";
+  lb.textContent = s ? "LOGGED IN - " + s.username.toUpperCase() : "LOGIN WITH DISCORD";
+}
+window.__yrRenderProfile = render;
+
+/* ---------- wallpaper ---------- */
+var wallCur = null, wallA = document.createElement("div"), wallB = document.createElement("div"), scrim = document.createElement("div");
+wallA.id = "yrBgWallA"; wallB.id = "yrBgWallB"; scrim.id = "yrBgScrim";
+window.__yrSetWall = function (url) {
+  if (!url || url === wallCur) return; wallCur = url;
+  var show = wallA.style.opacity === "1" ? wallB : wallA, hide = show === wallA ? wallB : wallA;
+  var img = new Image();
+  img.onload = function () { show.style.backgroundImage = 'url("' + url + '")'; show.style.opacity = "1"; hide.style.opacity = "0"; };
+  img.src = url;
+};
+function initWall() {
+  document.body.appendChild(wallA); document.body.appendChild(wallB); document.body.appendChild(scrim);
+  var heroBox = $("heroBackdropContainer");
+  if (heroBox && window.MutationObserver) {
+    new MutationObserver(function () { var im = heroBox.querySelector("img"); if (im && im.src) window.__yrSetWall(im.src); })
+      .observe(heroBox, { childList: true, subtree: true });
+  }
+  setTimeout(function () {
+    if (wallCur) return;
+    var key = ls("yrc.tmdbkey", "") || "20be784f740b6b638c906dde5b35efae";
+    fetch("https://api.themoviedb.org/3/trending/all/week?api_key=" + key).then(function (r) { return r.json(); }).then(function (d) {
+      var items = (d.results || []).filter(function (x) { return x.backdrop_path; });
+      if (!items.length) return;
+      var i = 0;
+      window.__yrSetWall("https://image.tmdb.org/t/p/w1280" + items[0].backdrop_path);
+      setInterval(function () { i = (i + 1) % items.length; window.__yrSetWall("https://image.tmdb.org/t/p/w1280" + items[i].backdrop_path); }, 18000);
+    }).catch(function () {});
+  }, 20000);
+}
+
+/* ---------- discord login ---------- */
+function dcIdentify(token) {
+  var direct = fetch("https://discord.com/api/users/@me", { headers: { Authorization: "Bearer " + token } }).then(function (r) { if (!r.ok) throw 0; return r.json(); });
+  return direct.catch(function () {
+    return fetch(SYNC_URL + "?identify=" + encodeURIComponent(token)).then(function (r) { return r.json(); }).then(function (j) { if (!j || !j.ok) throw 0; return j.user; });
+  });
+}
+function finishLogin(token) {
+  setStatus("CONNECTING TO DISCORD...");
+  dcIdentify(token).then(function (u) {
+    setSess({ token: token, id: u.id, username: u.username, avatar: u.avatar });
+    render(); setStatus("");
+    pull();
+  }).catch(function () { setStatus("DISCORD UNREACHABLE - CHECK VPN"); });
+}
+window.__yrDcToken = function (uri) { var m = /access_token=([^&]+)/.exec(uri || ""); if (m) finishLogin(decodeURIComponent(m[1])); };
+(function () {
+  var m = /[#&]access_token=([^&]+)/.exec(location.hash || "");
+  if (m) { var t = decodeURIComponent(m[1]); try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} finishLogin(t); }
+})();
+function loginDiscord() {
+  var cid = ls(LS.cid, "");
+  if (!cid) { openSetup(); return; }
+  var url = "https://discord.com/api/oauth2/authorize?client_id=" + encodeURIComponent(cid) + "&redirect_uri=" + encodeURIComponent(redirectUri()) + "&response_type=token&scope=identify&prompt=none";
+  if (isApp() && window.YROpen && window.YROpen.open) { window.YROpen.open(url); return; }
+  location.href = url;
+}
+
+/* ---------- sync ---------- */
+function payload() {
+  var w = [], c = [];
+  try { w = JSON.parse(ls("yrc.watchlist", "[]") || "[]"); } catch (e) {}
+  try { c = JSON.parse(ls("yrc.continue", "[]") || "[]"); } catch (e) {}
+  return { v: 1, ts: Date.now(), name: ls(LS.name, ""), avatar: ls(LS.avatar, ""), banner: ls(LS.banner, ""), theme: ls("yrc.theme", ""), watchlist: w, cont: c };
+}
+var lastSnap = null;
+function snap() { return ls("yrc.watchlist", "x") + "|" + ls("yrc.continue", "x") + "|" + ls(LS.name, "") + "|" + ls(LS.avatar, "") + "|" + ls(LS.banner, ""); }
+function push(manual) {
+  var s = sess(); if (!s) { if (manual) setStatus("LOGIN FIRST"); return; }
+  if (manual) setStatus("SYNCING...");
+  fetch(SYNC_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uid: s.id, key: "yrcine", data: payload() }) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) { if (j && j.ok) { lastSnap = snap(); render(); if (manual) setStatus("SYNCED " + new Date().toLocaleTimeString()); } else { if (manual) setStatus("SYNC SERVER NOT SET UP YET"); } })
+    .catch(function () { if (manual) setStatus("SYNC FAILED - NETWORK"); });
+}
+function pull() {
+  var s = sess(); if (!s) return;
+  fetch(SYNC_URL + "?uid=" + encodeURIComponent(s.id) + "&key=yrcine").then(function (r) { return r.json(); }).then(function (j) {
+    if (!j || !j.ok || !j.data) { lastSnap = snap(); render(); return; }
+    var d = j.data;
+    if (d.name && !ls(LS.name, "")) lsSet(LS.name, d.name);
+    if (d.avatar && !ls(LS.avatar, "")) lsSet(LS.avatar, d.avatar);
+    if (d.banner && !ls(LS.banner, "")) lsSet(LS.banner, d.banner);
+    try {
+      var mine = JSON.parse(ls("yrc.watchlist", "[]") || "[]"), map = {};
+      (d.watchlist || []).forEach(function (x) { if (x && x.id != null) map[x.id + "/" + (x.media_type || "m")] = x; });
+      mine.forEach(function (x) { if (x && x.id != null) map[x.id + "/" + (x.media_type || "m")] = x; });
+      var merged = Object.keys(map).map(function (k) { return map[k]; });
+      if (merged.length !== mine.length || JSON.stringify(merged) !== JSON.stringify(mine)) { lsSet("yrc.watchlist", JSON.stringify(merged)); needReload = true; }
+    } catch (e) {}
+    try {
+      var mineC = JSON.parse(ls("yrc.continue", "[]") || "[]"), mapC = {};
+      (d.cont || []).forEach(function (x) { if (x && x.id != null) mapC[x.id + "/" + (x.type || "")] = x; });
+      mineC.forEach(function (x) { if (x && x.id != null) mapC[x.id + "/" + (x.type || "")] = x; });
+      var mergedC = Object.keys(mapC).map(function (k) { return mapC[k]; });
+      if (mergedC.length !== mineC.length || JSON.stringify(mergedC) !== JSON.stringify(mineC)) { lsSet("yrc.continue", JSON.stringify(mergedC)); needReload = true; }
+    } catch (e) {}
+    lastSnap = snap(); render();
+    if (needReload) location.reload();
+  }).catch(function () { render(); });
+}
+var needReload = false;
+setInterval(function () { if (sess() && lastSnap !== null && snap() !== lastSnap) push(false); }, 12000);
+
+/* ---------- pickers + setup modal ---------- */
+function modal(inner) {
+  var ov = document.createElement("div");
+  ov.className = "yr55-modal";
+  ov.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;";
+  var box = document.createElement("div");
+  box.style.cssText = "background:rgba(13,14,20,.97);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;width:100%;max-width:340px;max-height:80vh;overflow-y:auto;";
+  box.innerHTML = inner;
+  ov.appendChild(box);
+  ov.addEventListener("click", function (e) { if (e.target === ov) document.body.removeChild(ov); });
+  document.body.appendChild(ov);
+  return { ov: ov, box: box };
+}
+function openSetup() {
+  var s = sess();
+  var m = modal('<div style="font:800 14px ui-sans-serif;color:#fff;letter-spacing:.5px">PROFILE SETUP</div>'
+    + '<div style="margin-top:12px;font:600 10px ui-monospace;color:rgba(255,255,255,.5)">DISPLAY NAME</div>'
+    + '<input id="yrSuName" value="' + escAttr(ls(LS.name, "")) + '" style="margin-top:6px;width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 10px;color:#fff;font:600 13px ui-sans-serif;outline:none" />'
+    + '<div style="margin-top:14px;font:600 10px ui-monospace;color:rgba(255,255,255,.5)">DISCORD CLIENT ID (from discord.com/developers)</div>'
+    + '<input id="yrSuCid" value="' + escAttr(ls(LS.cid, "")) + '" placeholder="paste client id here" style="margin-top:6px;width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 10px;color:#fff;font:600 13px ui-sans-serif;outline:none" />'
+    + '<div style="margin-top:8px;font:500 10px/1.5 ui-monospace;color:rgba(255,255,255,.35)">Add this redirect URI in the Discord app settings (OAuth2 - Redirects):<br><span style="color:#a5b4fc;word-break:break-all">' + redirectUri() + '</span></div>'
+    + (s ? '<button id="yrSuOut" style="margin-top:12px;width:100%;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);color:#fda4af;border-radius:10px;padding:9px;font:700 12px ui-sans-serif;cursor:pointer">LOG OUT OF DISCORD</button>' : "")
+    + '<button id="yrSuOk" style="margin-top:10px;width:100%;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.5);color:#c7d2fe;border-radius:10px;padding:10px;font:700 13px ui-sans-serif;cursor:pointer">SAVE</button>');
+  m.box.querySelector("#yrSuOk").onclick = function () {
+    var nm = m.box.querySelector("#yrSuName").value.trim();
+    lsSet(LS.name, nm);
+    var cid = m.box.querySelector("#yrSuCid").value.trim();
+    lsSet(LS.cid, cid);
+    document.body.removeChild(m.ov); render();
+  };
+  var out = m.box.querySelector("#yrSuOut");
+  if (out) out.onclick = function () { setSess(null); document.body.removeChild(m.ov); render(); };
+}
+function openAvatarPicker() {
+  var s = sess();
+  var html = '<div style="font:800 14px ui-sans-serif;color:#fff;letter-spacing:.5px">CHOOSE PHOTO</div><div id="yrAvGrid" style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>'
+    + (s && s.avatar ? '<div id="yrAvDc" style="margin-top:12px;display:flex;align-items:center;gap:10px;cursor:pointer"><img src="https://cdn.discordapp.com/avatars/' + s.id + '/' + s.avatar + '.png?size=64" style="h:32px;width:32px;height:32px;border-radius:50%" /><span style="font:600 12px ui-sans-serif;color:#aab2ff">Use Discord avatar</span></div>' : "")
+    + '<label style="margin-top:12px;display:block;text-align:center;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);border-radius:10px;padding:10px;font:600 12px ui-sans-serif;color:rgba(255,255,255,.7);cursor:pointer">UPLOAD FROM GALLERY<input id="yrAvFile" type="file" accept="image/*" style="display:none" /></label>';
+  var m = modal(html);
+  var grid = m.box.querySelector("#yrAvGrid");
+  AVGRADS.forEach(function (g, i) {
+    var d = document.createElement("div");
+    d.style.cssText = "aspect-ratio:1;border-radius:50%;cursor:pointer;background:" + g + ";border:2px solid transparent;";
+    d.onclick = function () { lsSet(LS.avatar, "grad:" + i); document.body.removeChild(m.ov); render(); };
+    grid.appendChild(d);
+  });
+  var dc = m.box.querySelector("#yrAvDc");
+  if (dc) dc.onclick = function () { lsSet(LS.avatar, ""); document.body.removeChild(m.ov); render(); };
+  m.box.querySelector("#yrAvFile").onchange = function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement("canvas"); c.width = 96; c.height = 96;
+        var ctx = c.getContext("2d");
+        var mn = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width - mn) / 2, (img.height - mn) / 2, mn, mn, 0, 0, 96, 96);
+        lsSet(LS.avatar, c.toDataURL("image/jpeg", 0.85));
+        document.body.removeChild(m.ov); render();
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+}
+function openBannerPicker() {
+  var html = '<div style="font:800 14px ui-sans-serif;color:#fff;letter-spacing:.5px">CHOOSE BANNER</div><div id="yrBnGrid" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>'
+    + '<div id="yrBnHero" style="margin-top:10px;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;font:600 12px ui-sans-serif;color:rgba(255,255,255,.75);cursor:pointer">USE CURRENT WALLPAPER</div>'
+    + '<label style="margin-top:10px;display:block;text-align:center;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);border-radius:10px;padding:10px;font:600 12px ui-sans-serif;color:rgba(255,255,255,.7);cursor:pointer">UPLOAD BANNER IMAGE<input id="yrBnFile" type="file" accept="image/*" style="display:none" /></label>';
+  var m = modal(html);
+  var grid = m.box.querySelector("#yrBnGrid");
+  GRADS.forEach(function (g) {
+    var d = document.createElement("div");
+    d.style.cssText = "height:52px;border-radius:10px;cursor:pointer;background:" + g + ";";
+    d.onclick = function () { lsSet(LS.banner, g); document.body.removeChild(m.ov); render(); };
+    grid.appendChild(d);
+  });
+  m.box.querySelector("#yrBnHero").onclick = function () {
+    if (wallCur) { lsSet(LS.banner, "url(" + QQ + wallCur + QQ + ")"); document.body.removeChild(m.ov); render(); }
+  };
+  m.box.querySelector("#yrBnFile").onchange = function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement("canvas"), ar = 500 / 110;
+        var w = Math.min(img.width, img.height * ar), h = w / ar;
+        c.width = 500; c.height = 110;
+        c.getContext("2d").drawImage(img, (img.width - w) / 2, (img.height - h) / 2, w, h, 0, 0, 500, 110);
+        lsSet(LS.banner, "url(" + QQ + c.toDataURL("image/jpeg", 0.85) + QQ + ")");
+        document.body.removeChild(m.ov); render();
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+}
+
+/* ---------- wiring ---------- */
+function arm55() {
+  initWall();
+  render();
+  var b1 = $("yrDcLogin"); if (b1) b1.onclick = loginDiscord;
+  var b2 = $("yrAvatarBtn"); if (b2) b2.onclick = openAvatarPicker;
+  var b3 = $("yrPBannerBtn"); if (b3) b3.onclick = openBannerPicker;
+  var b4 = $("yrSyncBtn"); if (b4) b4.onclick = function () { push(true); };
+  var b5 = $("yrPName"); if (b5) b5.onclick = openSetup;
+  var b6 = $("yrPSub"); if (b6) b6.onclick = openSetup;
+  var b7 = $("yrDevMail"); if (b7) b7.onclick = function () { if (window.YROpen && window.YROpen.open) { window.YROpen.open("mailto:yra45417@gmail.com"); } else { location.href = "mailto:yra45417@gmail.com"; } };
+  var b8 = $("yrDevGit"); if (b8) b8.onclick = function () { if (window.YROpen && window.YROpen.open) { window.YROpen.open("https://github.com/kalki-xy"); } else { window.open("https://github.com/kalki-xy", "_blank"); } };
+  if (sess()) pull();
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm55); else arm55();
+})();</script>
 <style>
 <style id="yr-twc">
 /* YRcine design CSS - Tailwind v3.4.17 compiled, fully offline */
@@ -530,9 +795,9 @@ body[data-navpos="right"] #dynamicIslandContainer {
 <canvas id="ambientCanvas"></canvas>
 
 <!-- SLIDE BAR DRAWER BACKDROP & PANEL -->
-<div id="slidebarBackdrop" class="fixed inset-0 z-[130] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+<div id="slidebarBackdrop" class="fixed inset-0 z-[130] opacity-0 pointer-events-none transition-opacity duration-[420ms]"></div>
 
-<aside id="slidebarDrawer" style="background:rgba(13,14,20,.97)" class="fixed top-0 bottom-0 left-0 z-[135] flex w-[330px] max-w-[85vw] -translate-x-full flex-col text-white transition-transform duration-300 ease-[cubic-bezier(0.34,1.15,0.64,1)]">
+<aside id="slidebarDrawer" style="background:rgba(13,14,20,.97)" class="fixed top-0 bottom-0 left-0 z-[135] flex w-[330px] max-w-[85vw] -translate-x-full flex-col text-white transition-transform duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]">
   <!-- Slide Bar Header -->
   <div class="flex items-center justify-between border-b border-white/10 px-5 py-4 bg-white/[0.02]">
     <div class="flex items-center gap-3">
@@ -554,7 +819,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
     </button>
   </div>
 
-  <div class="no-scrollbar flex-1 overflow-y-auto px-4 py-5 space-y-6">
+  <div class="no-scrollbar flex-1 overflow-y-auto px-4 py-5 space-y-6"><div id="yrProfileCard" class="rounded-2xl border border-white/5 bg-white/[0.02] p-3"><div id="yrPBanner" class="h-16 rounded-xl relative overflow-hidden" style="background:linear-gradient(120deg,#6366f1,#ec4899);background-size:cover;background-position:center"></div><div class="flex items-end gap-3 -mt-6 px-1"><button id="yrAvatarBtn" style="cursor:pointer" title="Change photo"><div id="yrPAvatar" class="h-12 w-12 rounded-full" style="border:2px solid #0d0e14;display:none;background-size:cover;background-position:center"></div><div id="yrPAvInit" class="h-12 w-12 rounded-full flex items-center justify-center font-black text-lg text-white" style="background:linear-gradient(135deg,#312e81,#7c3aed)">G</div></button><div class="flex-1 min-w-0 pb-0.5"><div id="yrPName" class="font-bold text-sm truncate">Guest Viewer</div><div id="yrPSub" class="text-[10px] font-mono text-white/40 truncate">LOCAL PROFILE - NOT SYNCED</div></div></div><div class="mt-3 flex items-center gap-2"><button id="yrDcLogin" class="flex-1 rounded-xl bg-[#5865F2]/15 border border-[#5865F2]/40 text-[#aab2ff] text-xs font-bold py-2.5 px-3 transition hover:bg-[#5865F2]/25" style="cursor:pointer">LOGIN WITH DISCORD</button><button id="yrPBannerBtn" title="Choose banner" class="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-white/60 hover:text-white transition" style="cursor:pointer"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></button><button id="yrSyncBtn" title="Sync now" class="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-white/60 hover:text-white transition" style="cursor:pointer"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div><div id="yrPStatus" class="hidden mt-2 text-[10px] font-mono text-white/40"></div></div>
     <!-- User VIP Pass Badge -->
     <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-transparent p-3.5 shadow-inner">
       <div class="flex items-center gap-3">
@@ -727,6 +992,11 @@ body[data-navpos="right"] #dynamicIslandContainer {
     <div class="flex items-center justify-between text-[11px] font-mono text-white/40">
       <span>YRCINE · 2026</span>
       <span class="text-yrc-accent font-bold">CINEMA CORE</span>
+    </div>
+    <div class="mt-2 flex items-center justify-between text-[10px] font-mono text-white/35">
+      <span>DEV</span>
+      <a id="yrDevMail" class="hover:text-white/70 transition" style="cursor:pointer">yra45417@gmail.com</a>
+      <a id="yrDevGit" class="hover:text-white/70 transition" style="cursor:pointer">github.com/kalki-xy</a>
     </div>
   </div>
 </aside>
@@ -4181,8 +4451,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.4.0";
-try { localStorage.setItem("yrc.ver", "5.4.0"); } catch(e){}
+window.YR_VERSION = "5.5.0";
+try { localStorage.setItem("yrc.ver", "5.5.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4207,7 +4477,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.4";
+    tag.textContent = "v5.5";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
