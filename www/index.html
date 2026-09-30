@@ -4370,8 +4370,8 @@ try{
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.0.2";
-try { localStorage.setItem("yrc.ver", "4.0.2"); } catch(e){}
+window.YR_VERSION = "4.0.3";
+try { localStorage.setItem("yrc.ver", "4.0.3"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4396,7 +4396,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.0.2";
+    tag.textContent = "v4.0.3";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
@@ -4515,6 +4515,47 @@ function watchdog(){
 function wloc(){ try { window.location.reload(); } catch(e){} }
 setInterval(watchdog, 3000);
 setTimeout(watchdog, 8000);
+
+/* ---------- UI polish: loading skeletons + poster fallbacks (v4.0.3) ---------- */
+try {
+  var st = document.createElement("style");
+  st.textContent = ".yr-poster-fb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;padding:10px;box-sizing:border-box;background:radial-gradient(120% 120% at 30% 20%,rgba(255,255,255,.09),rgba(255,255,255,.02) 55%),#141419;text-align:center}" +
+    ".yr-poster-fb .t{font:700 11px/1.35 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.85);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}" +
+    ".yr-poster-fb .m{font:700 9px 'JetBrains Mono',monospace;letter-spacing:1px;color:rgba(255,255,255,.4)}";
+  document.head.appendChild(st);
+} catch (err) {}
+
+function yrSkeletons() {
+  ["top10Rail", "trendingRail", "popularMoviesRail", "popularTVRail", "topRatedRail"].forEach(function (id) {
+    var r = document.getElementById(id);
+    if (!r) return;
+    var first = r.firstElementChild;
+    if (!first || String(first.className).indexOf("yrc-shimmer") < 0) return;
+    for (var i = r.children.length; i < 8; i++) r.appendChild(first.cloneNode(true));
+  });
+}
+
+document.addEventListener("error", function (ev) {
+  var img = ev && ev.target;
+  if (!img || img.tagName !== "IMG") return;
+  if (img.dataset.yrFb) return;
+  img.dataset.yrFb = "1";
+  var host = img.parentElement;
+  if (!host) return;
+  var title = (img.alt || "").replace(/^\s+|\s+$/g, "") || "Unavailable";
+  var fb = document.createElement("div");
+  fb.className = "yr-poster-fb";
+  fb.textContent = "";
+  var t1 = document.createElement("div"); t1.className = "t"; t1.textContent = title;
+  var t2 = document.createElement("div"); t2.className = "m"; t2.textContent = "POSTER OFFLINE";
+  fb.appendChild(t1); fb.appendChild(t2);
+  host.innerHTML = "";
+  host.appendChild(fb);
+}, true);
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", yrSkeletons);
+else yrSkeletons();
+setTimeout(yrSkeletons, 2500);
 
 function boot(){ chip(); dubUI(); }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
