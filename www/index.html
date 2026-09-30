@@ -2273,7 +2273,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
   /* ===============================================================
      CONSTANTS, SOUND SYNTHESIS & SYSTEM DATA
      =============================================================== */
-  const TMDB_KEY = "db55323b8d3e4154498a75642b381";
+  const TMDB_KEY = "20be784f740b6b638c906dde5b35efae";
   const TMDB_BASE = "https://api.themoviedb.org/3";
   const IMG_W1280 = "https://image.tmdb.org/t/p/w1280";
   const IMG_W780 = "https://image.tmdb.org/t/p/w780";
@@ -2460,26 +2460,28 @@ body[data-navpos="right"] #dynamicIslandContainer {
   ];
 
   async function fetchTmdb(endpoint, params = {}) {
-    params.api_key = TMDB_KEY;
+    let apiKey = TMDB_KEY;
+    try { apiKey = (localStorage.getItem("yrc.tmdbkey") || "").trim() || TMDB_KEY; } catch (e) {}
+    params.api_key = apiKey;
     params.region = localStorage.getItem("yrc.region") || "IN";
     const qs = new URLSearchParams(params).toString();
     const targetUrl = `${TMDB_BASE}${endpoint}?${qs}`;
     const CKEY = "yrc.home.cache";
     const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
-    for (const proxyFn of PROXY_PIPELINE) {
+    const attempts = PROXY_PIPELINE.map(proxyFn => (async () => {
+      const res = await withTimeout(fetch(proxyFn(targetUrl), { cache: 'no-store' }), 10000);
+      if (res.ok) return await withTimeout(res.json(), 5000);
+      throw new Error("HTTP " + res.status);
+    })());
+    try {
+      const data = await (Promise.any ? Promise.any(attempts) : attempts[0]);
       try {
-        const res = await withTimeout(fetch(proxyFn(targetUrl), { cache: 'no-store' }), 6000);
-        if (res.ok) {
-          const data = await withTimeout(res.json(), 5000);
-          try {
-            const cache = JSON.parse(localStorage.getItem(CKEY) || "{}");
-            cache[endpoint] = { t: Date.now(), data: data };
-            localStorage.setItem(CKEY, JSON.stringify(cache));
-          } catch (e) {}
-          return data;
-        }
-      } catch (err) {}
-    }
+        const cache = JSON.parse(localStorage.getItem(CKEY) || "{}");
+        cache[endpoint] = { t: Date.now(), data: data };
+        localStorage.setItem(CKEY, JSON.stringify(cache));
+      } catch (e) {}
+      return data;
+    } catch (err) {}
     try {
       const cache = JSON.parse(localStorage.getItem(CKEY) || "{}");
       if (cache[endpoint] && cache[endpoint].data) { console.warn("[YR] serving cached", endpoint); return cache[endpoint].data; }
@@ -4368,8 +4370,8 @@ try{
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.0.1";
-try { localStorage.setItem("yrc.ver", "4.0.1"); } catch(e){}
+window.YR_VERSION = "4.0.2";
+try { localStorage.setItem("yrc.ver", "4.0.2"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4394,7 +4396,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.0.1";
+    tag.textContent = "v4.0.2";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
@@ -4419,6 +4421,24 @@ function dubUI(){
     row.style.cssText = "margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)";
     row.innerHTML = '<p style="font:700 10px/1 \'JetBrains Mono\',monospace;color:rgba(255,255,255,.55);margin:0 0 10px;letter-spacing:1.2px">AUDIO DUB &middot; MULTILANG SERVERS</p><div id="yrDubBtns" style="display:flex;gap:8px;flex-wrap:wrap"></div><p style="font:11px/1.6 sans-serif;color:rgba(255,255,255,.35);margin:10px 0 0">Works with MultiLang, VSrc CC and AutoEmbed servers - picks Hindi / English / Japanese audio when the server has it.</p>';
     tab.appendChild(row);
+    try {
+      var kr = document.createElement("div");
+      kr.style.cssText = "margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)";
+      kr.innerHTML = '<p style="font:700 10px/1 \'JetBrains Mono\',monospace;color:rgba(255,255,255,.55);margin:0 0 8px;letter-spacing:1.2px">CUSTOM TMDB API KEY (ADVANCED)</p>';
+      var inp = document.createElement("input");
+      inp.id = "yrTmdbKey";
+      inp.type = "text";
+      inp.placeholder = "paste a TMDB key if movies ever stop loading";
+      inp.value = "";
+      try { inp.value = localStorage.getItem("yrc.tmdbkey") || ""; } catch(e2){}
+      inp.style.cssText = "width:100%;box-sizing:border-box;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:9px 12px;font:12px 'JetBrains Mono',monospace;outline:none";
+      var sb = document.createElement("button");
+      sb.textContent = "SAVE KEY";
+      sb.style.cssText = "margin-top:8px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);padding:8px 14px;font:700 11px sans-serif;cursor:pointer";
+      sb.onclick = function(){ try { localStorage.setItem("yrc.tmdbkey", (inp.value||"").trim()); sb.textContent = "SAVED - RELOADING"; setTimeout(function(){ try { window.location.reload(); } catch(e3){} }, 700); } catch(e2){} };
+      kr.appendChild(inp); kr.appendChild(sb);
+      tab.appendChild(kr);
+    } catch(e){}
     var cur = ""; try { cur = localStorage.getItem("yrc.dub") || ""; } catch(e){}
     var wrap = row.querySelector("#yrDubBtns");
     DUBS.forEach(function(o){
@@ -4479,7 +4499,7 @@ function watchdog(){
   try {
     var t = document.getElementById("heroTitle");
     if (!t) return;
-    var stuck = /loading cinema/i.test(t.textContent || "");
+    var dd = document.getElementById("heroDesc"); var stuck = /loading cinema/i.test(t.textContent || "") || (!!dd && /preparing cinema rails/i.test(dd.textContent || ""));
     var pill = document.getElementById("yrRetryPill");
     if (stuck && !pill) {
       pill = document.createElement("button");
@@ -4494,7 +4514,7 @@ function watchdog(){
 }
 function wloc(){ try { window.location.reload(); } catch(e){} }
 setInterval(watchdog, 3000);
-setTimeout(watchdog, 12000);
+setTimeout(watchdog, 8000);
 
 function boot(){ chip(); dubUI(); }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
