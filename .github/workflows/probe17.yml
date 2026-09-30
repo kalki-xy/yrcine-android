@@ -1,0 +1,24 @@
+name: probe17
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: manhwa source candidates
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          probe() {
+            name=$1; url=$2
+            code=$(curl -sL --max-time 20 -A "$UA" -o out/${name}.html -w "%{http_code}" "$url")
+            size=$(wc -c < out/${name}.html)
+            if head -c 300 out/${name}.html | grep -qi "cloudflare\|just a moment"; then real=CF; else real=OK; fi
+            echo "$name code=$code size=$size $real"
+          }
+          probe mpark "https://mangapark.net/search?word=solo+leveling"
+          probe bato "https://bato.to/search?word=solo+leveling"
+          probe comic "https://api.comick.fun/v1.0/search?q=solo+leveling&limit=5"
+          probe comic2 "https://api.comick.fun/top?comic_types=manhwa&tachiyomi=true"
+          probe mbuddy "https://mangabuddy.com/search?q=solo+leveling"
+      - uses: actions/upload-artifact@v4
+        with: {name: probe17, path: out/}
