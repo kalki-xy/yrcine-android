@@ -294,7 +294,7 @@ function initWall() {
       if (!items.length) return;
       var i = 0;
       window.__yrSetWall("https://image.tmdb.org/t/p/w1280" + items[0].backdrop_path);
-      setInterval(function () { i = (i + 1) % items.length; window.__yrSetWall("https://image.tmdb.org/t/p/w1280" + items[i].backdrop_path); }, 18000);
+      setInterval(function () { i = (i + 1) % items.length; window.__yrSetWall("https://image.tmdb.org/t/p/w780" + items[i].backdrop_path); }, 18000);
     }).catch(function () {});
   }, 20000);
 }
@@ -409,7 +409,7 @@ function openSetup() {
 function openAvatarPicker() {
   var s = sess();
   var html = '<div style="font:800 14px ui-sans-serif;color:#fff;letter-spacing:.5px">CHOOSE PHOTO</div><div id="yrAvGrid" style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>'
-    + (s && s.avatar ? '<div id="yrAvDc" style="margin-top:12px;display:flex;align-items:center;gap:10px;cursor:pointer"><img src="https://cdn.discordapp.com/avatars/' + s.id + '/' + s.avatar + '.png?size=64" style="h:32px;width:32px;height:32px;border-radius:50%" /><span style="font:600 12px ui-sans-serif;color:#aab2ff">Use Discord avatar</span></div>' : "")
+    + (s && s.avatar ? '<div id="yrAvDc" style="margin-top:12px;display:flex;align-items:center;gap:10px;cursor:pointer"><img decoding="async" src="https://cdn.discordapp.com/avatars/' + s.id + '/' + s.avatar + '.png?size=64" style="h:32px;width:32px;height:32px;border-radius:50%" /><span style="font:600 12px ui-sans-serif;color:#aab2ff">Use Discord avatar</span></div>' : "")
     + '<label style="margin-top:12px;display:block;text-align:center;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);border-radius:10px;padding:10px;font:600 12px ui-sans-serif;color:rgba(255,255,255,.7);cursor:pointer">UPLOAD FROM GALLERY<input id="yrAvFile" type="file" accept="image/*" style="display:none" /></label>';
   var m = modal(html);
   var grid = m.box.querySelector("#yrAvGrid");
@@ -2205,7 +2205,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
 
     if (bgContainer && backdropUrl) {
       bgContainer.innerHTML = `
-        <img src="${backdropUrl}" class="h-full w-full object-cover object-top transition-opacity duration-700" alt="${item.title || item.name}">
+        <img src="${backdropUrl}" decoding="async" class="h-full w-full object-cover object-top transition-opacity duration-700" alt="${item.title || item.name}">
       `;
     }
 
@@ -2617,7 +2617,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
     grid.innerHTML = POPULAR_MANGA.map(m => `
       <div class="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#121217] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-400/50" onclick="openMangaReader('${m.title}')">
         <div class="aspect-[2/3] w-full overflow-hidden bg-black/50">
-          <img src="${m.cover}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${m.title}">
+          <img src="${m.cover}" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${m.title}">
         </div>
         <div class="p-3">
           <div class="font-caveat text-xl font-bold text-white line-clamp-1 group-hover:text-emerald-400">${m.title}</div>
@@ -2652,7 +2652,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
     grid.innerHTML = POPULAR_TRACKS.map(t => `
       <div class="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#121217] shadow-xl p-3 transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-400/50" onclick="playMusicTrack('${t.title}', '${t.artist}')">
         <div class="aspect-square w-full rounded-xl overflow-hidden mb-3">
-          <img src="${t.cover}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${t.title}">
+          <img src="${t.cover}" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${t.title}">
         </div>
         <div class="font-caveat text-xl font-bold text-white line-clamp-1 group-hover:text-amber-300">${t.title}</div>
         <div class="flex items-center justify-between text-[11px] font-mono text-white/50 mt-1">
@@ -2788,7 +2788,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
         const img = new Image();
         img.onload = () => {
           resultBox.innerHTML = `
-            <img src="${imgUrl}" class="h-full w-full object-cover" alt="${p}">
+            <img src="${imgUrl}" decoding="async" class="h-full w-full object-cover" alt="${p}">
             <a href="${imgUrl}" target="_blank" download="yrcine-artwork.jpg" class="absolute bottom-2 right-2 rounded-xl bg-black/80 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md hover:bg-white hover:text-black">
               Download 4K
             </a>
@@ -2987,7 +2987,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
 
             return `
               <div class="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-2 transition hover:border-yrc-accent hover:bg-white/[0.08] cursor-pointer" onclick="closeModal('searchModal'); openMediaDetail(${item.id}, '${type}')">
-                <img src="${poster}" class="h-16 w-11 flex-shrink-0 rounded-lg object-cover" alt="${title}">
+                <img src="${poster}" loading="lazy" decoding="async" class="h-16 w-11 flex-shrink-0 rounded-lg object-cover" alt="${title}">
                 <div class="min-w-0 flex-1">
                   <div class="font-caveat text-xl font-bold leading-tight text-white line-clamp-1">${title}</div>
                   <div class="mt-0.5 font-mono text-[11px] text-white/50">${year} • <span class="uppercase text-yrc-accent font-bold">${type}</span></div>
@@ -3692,7 +3692,7 @@ try{
 .yr43-rail .yr43-card{flex:0 0 118px}
 .yr43-rail .yr43-card img{width:118px}
 .yr43-sec{font:800 13px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.85);margin:20px 0 10px;letter-spacing:.4px}
-.yr43-modal{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);padding:14px}
+.yr43-modal{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);padding:14px}
 .yr43-modal.open{display:flex}
 .yr43-modal .box{width:100%;max-width:640px;max-height:88vh;overflow-y:auto;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:#101015;padding:18px}
 .yr43-reader{position:fixed;inset:0;z-index:13000;display:none;background:#000;overflow-y:auto}
@@ -3823,7 +3823,7 @@ function openDetail(id, kind) {
     var box = document.getElementById("yrAnimeDetailBox");
     box.innerHTML =
       '<div style="display:flex;gap:14px">' +
-        '<img src="' + esc(m.poster_path ? "https://image.tmdb.org/t/p/w342" + m.poster_path : "") + '" style="width:120px;border-radius:12px" alt="">' +
+        '<img loading="lazy" decoding="async" src="' + esc(m.poster_path ? "https://image.tmdb.org/t/p/w342" + m.poster_path : "") + '" style="width:120px;border-radius:12px" alt="">' +
         '<div style="flex:1;min-width:0">' +
           '<h3 style="font:800 17px \'Plus Jakarta Sans\',sans-serif;color:#fff;margin:0 0 6px">' + esc(title) + "</h3>" +
           '<div style="font:700 10px \'JetBrains Mono\',monospace;color:rgba(255,255,255,.5)">' + meta + "</div>" +
@@ -4386,7 +4386,7 @@ function render(days) {
     return '<div class="yr43-sec">' + d.label + ' <span style="font:700 10px monospace;color:rgba(255,255,255,.35)">' + d.date + "</span></div>" +
       d.items.map(function (it) {
         return '<div class="yr43-chap" data-schtid="' + it.id + '"><span style="display:flex;align-items:center;gap:10px">' +
-          (it.poster ? '<img src="' + it.poster + '" style="width:30px;height:44px;object-fit:cover;border-radius:6px">' : "") +
+          (it.poster ? '<img loading="lazy" decoding="async" src="' + it.poster + '" style="width:30px;height:44px;object-fit:cover;border-radius:6px">' : "") +
           '<b>' + esc(it.name) + '</b></span><span>S' + it.s + "E" + it.ep + "</span></div>";
       }).join("");
   }).join("");
@@ -4537,8 +4537,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.9.0";
-try { localStorage.setItem("yrc.ver", "5.9.0"); } catch(e){}
+window.YR_VERSION = "6.0.0";
+try { localStorage.setItem("yrc.ver", "6.0.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4563,7 +4563,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.9";
+    tag.textContent = "v6.0";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
@@ -4658,7 +4658,7 @@ try {
   function pump(){ try { window.dispatchEvent(new Event("hashchange")); } catch(e){} }
   var vu = document.getElementById("vaultUnlockedContent");
   if (vu) { var mo = new MutationObserver(pump); mo.observe(vu, { attributes: true, attributeFilter: ["class"] }); }
-  setInterval(function(){ var v = document.getElementById("viewVault"); if (v && !v.classList.contains("hidden")) pump(); }, 900);
+  setInterval(function(){ var v = document.getElementById("viewVault"); if (v && !v.classList.contains("hidden")) pump(); }, 5000);
 } catch(e){}
 
 /* stuck-hero watchdog: Jio-proof retry pill when home data never lands */
