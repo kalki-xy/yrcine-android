@@ -479,6 +479,57 @@ function arm55() {
   if (sess()) pull();
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm55); else arm55();
+})();</script><script id="yrcine-v56-js">(function () {
+"use strict";
+function $(id) { return document.getElementById(id); }
+var lastEpId = null;
+function probe(url) {
+  return Promise.race([
+    fetch(url, { mode: "no-cors", cache: "no-store" }).then(function () { return true; }, function () { return false; }),
+    new Promise(function (res) { setTimeout(function () { res(null); }, 6000); })
+  ]);
+}
+function ensureOverlay() {
+  var ov = $("yrEpNetOverlay");
+  if (ov) return ov;
+  var modal = $("yrEpModal");
+  if (!modal) return null;
+  ov = document.createElement("div");
+  ov.id = "yrEpNetOverlay";
+  ov.className = "yr55-modal";
+  ov.style.cssText = "position:absolute;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,9,12,.96);text-align:center;padding:24px;";
+  ov.innerHTML = '<div style="font:800 13px ui-sans-serif;color:#fda4af;letter-spacing:.8px">EPORNER BLOCKED ON THIS NETWORK</div>'
+    + '<div style="margin-top:10px;font:500 12px/1.6 ui-sans-serif;color:rgba(255,255,255,.55);max-width:320px">The video grid loads through your Vercel proxy, but the player itself connects to eporner.com directly - and your network is blocking it.</div>'
+    + '<div style="margin-top:8px;font:600 12px/1.6 ui-sans-serif;color:#c7d2fe">Turn ON your VPN, then tap RETRY.</div>'
+    + '<button id="yrEpRetryBtn" style="margin-top:16px;background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.6);color:#c7d2fe;border-radius:10px;padding:10px 26px;font:700 13px ui-sans-serif;cursor:pointer">RETRY</button>';
+  var frameWrap = $("yrEpFrame");
+  var host = frameWrap && frameWrap.parentElement;
+  if (host) host.appendChild(ov); else modal.appendChild(ov);
+  return ov;
+}
+window.__yrEpCheck = function (id) {
+  lastEpId = id;
+  var ov = ensureOverlay();
+  if (ov) ov.style.display = "none";
+  Promise.all([probe("https://www.eporner.com/favicon.ico"), probe("https://voidanime-backend.vercel.app/")]).then(function (r) {
+    var epOk = r[0] === true;
+    var netOk = r[1] === true;
+    var o = ensureOverlay();
+    if (!o) return;
+    if (!epOk) {
+      if (!netOk) {
+        o.querySelector("div").textContent = "NETWORK OFFLINE";
+        o.style.display = "flex";
+      } else {
+        o.style.display = "flex";
+      }
+    }
+  });
+};
+document.addEventListener("DOMContentLoaded", function () {
+  var b = $("yrEpRetryBtn");
+  if (b) b.onclick = function () { if (lastEpId) { $("yrEpFrame").src = "https://www.eporner.com/embed/" + lastEpId + "/"; } window.__yrEpCheck(lastEpId); };
+});
 })();</script>
 <style>
 <style id="yr-twc">
@@ -4197,6 +4248,7 @@ function epPlay(id, title) {
   document.getElementById("yrEpFrame").src = "https://www.eporner.com/embed/" + id + "/";
   document.getElementById("yrEpTitle").textContent = title || "";
   document.getElementById("yrEpModal").classList.add("open");
+  window.__yrEpCheck && window.__yrEpCheck(id);
 }
 function wire() {
   var d = document;
@@ -4451,8 +4503,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.5.0";
-try { localStorage.setItem("yrc.ver", "5.5.0"); } catch(e){}
+window.YR_VERSION = "5.6.0";
+try { localStorage.setItem("yrc.ver", "5.6.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4477,7 +4529,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.5";
+    tag.textContent = "v5.6";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
