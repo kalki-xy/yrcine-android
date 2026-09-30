@@ -1,0 +1,21 @@
+name: probe8
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe manga series/chapter + voidverse + anilist
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          # mangapill real series page
+          curl -sL --max-time 25 -A "$UA" "https://mangapill.com/manga/2/one-piece" -o out/mp_series2.html
+          # AniList GraphQL (anime data + voidverse ids are anilist)
+          curl -s --max-time 20 -A "$UA" -X POST "https://graphql.anilist.co" -H "Content-Type: application/json" -d '{"query":"{ Page(perPage: 3) { media(type: ANIME, sort: TRENDING_DESC) { id title { romaji english } coverImage { large } bannerImage averageScore format status episodes genres description(asHtml:false) } } }"}' -o out/anilist.json
+          # voidverse player alive?
+          echo "VV:" >> out/vv.txt
+          curl -sL --max-time 20 -A "$UA" -o out/vv_anime.html -w "anime21ep1 %{http_code} %{size_download}\n" "https://player.voidverse.me/embed/anime/21/1" >> out/vv.txt
+          curl -sL --max-time 20 -A "$UA" -o /dev/null -w "movie550 %{http_code}\n" "https://player.voidverse.me/embed/movie/550" >> out/vv.txt
+          cat out/vv.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: probe8, path: out/}
