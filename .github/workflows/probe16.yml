@@ -1,0 +1,20 @@
+name: probe16
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: manganato + mangakakalot shapes
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          for base in "https://manganato.com" "https://mangakakalot.com" "https://chapmanganato.to"; do
+            tag=$(echo $base | sed 's https://  ; s/\./_/g')
+            echo "== $base" >> out/notes.txt
+            curl -sL --max-time 25 -A "$UA" -o out/${tag}_search.html -w "${tag} search %{http_code} %{size_download}\n" "$base/search/story/solo_leveling" >> out/notes.txt
+            head -c 120 out/${tag}_search.html >> out/notes.txt; echo >> out/notes.txt
+          done
+          wc -c out/*.html >> out/notes.txt
+          cat out/notes.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: probe16, path: out/}
