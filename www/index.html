@@ -187,35 +187,29 @@ function arm() {
   }
   document.addEventListener("touchstart", yr5TapGuard, true);
   document.addEventListener("click", yr5TapGuard, true);
-  /* v5.3 DIAGNOSTIC: live HUD + force close - one build only */
-  var hud = document.createElement("div");
-  hud.id = "yrDebugHud";
-  hud.style.cssText = "position:fixed;top:2px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#000;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:3px 9px;color:#fff;font:600 10px/1.5 ui-monospace,monospace;pointer-events:none;letter-spacing:.4px;white-space:nowrap;";
-  document.body.appendChild(hud);
-  var yrTapCount = 0;
-  function yrHud() {
-    var dr = document.getElementById("slidebarDrawer");
-    var open = dr ? dr.className.indexOf("-translate-x-full") === -1 : false;
-    hud.textContent = "v5.3 taps:" + yrTapCount + " drawer:" + (open ? "OPEN" : "CLOSED") + (window.__yr5Force ? " FORCED-CLOSED" : "");
+  /* v5.4 GHOST-LAYER KILLER: on some GPUs the drawer's compositor layer keeps
+     painting a stale frame after it slides away - the drawer is closed but a
+     ghost panel stays on screen and eats taps. This watcher forces an inline
+     transform (forces layer rebuild) and destroys the layer (display:none)
+     350ms after every close, and restores it before every open. */
+  var yrDrawer = document.getElementById("slidebarDrawer");
+  if (yrDrawer && window.MutationObserver) {
+    var yrGhostTimer = null;
+    new MutationObserver(function () {
+      var closed = yrDrawer.className.indexOf("-translate-x-full") !== -1;
+      if (closed) {
+        yrDrawer.style.transform = "translateX(-100%)";
+        if (yrGhostTimer) clearTimeout(yrGhostTimer);
+        yrGhostTimer = setTimeout(function () {
+          if (yrDrawer.className.indexOf("-translate-x-full") !== -1) yrDrawer.style.display = "none";
+        }, 350);
+      } else {
+        if (yrGhostTimer) { clearTimeout(yrGhostTimer); yrGhostTimer = null; }
+        yrDrawer.style.display = "";
+        yrDrawer.style.transform = "translateX(0)";
+      }
+    }).observe(yrDrawer, { attributes: true, attributeFilter: ["class"] });
   }
-  document.addEventListener("touchstart", function () { yrTapCount++; yrHud(); }, true);
-  document.addEventListener("click", function () { yrTapCount++; yrHud(); }, true);
-  var fc = document.createElement("button");
-  fc.id = "yrForceClose";
-  fc.type = "button";
-  fc.textContent = "FORCE CLOSE";
-  fc.style.cssText = "position:fixed;top:28px;right:6px;z-index:2147483647;background:#7f1d1d;color:#fff;border:1px solid #ef4444;border-radius:10px;padding:10px 14px;font:700 12px/1 ui-sans-serif,system-ui;box-shadow:0 4px 14px rgba(0,0,0,.55);";
-  fc.onclick = function () {
-    var dr = document.getElementById("slidebarDrawer"), bd = document.getElementById("slidebarBackdrop");
-    if (dr) dr.style.display = "none";
-    if (bd) { bd.style.display = "none"; bd.classList.add("opacity-0", "pointer-events-none"); }
-    window.__yr5Force = true;
-    window.__yrScrollLock = 0;
-    document.body.style.overflow = "";
-    yrHud();
-  };
-  document.body.appendChild(fc);
-  yrHud();
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm);
 else arm();
@@ -4187,8 +4181,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.3.0";
-try { localStorage.setItem("yrc.ver", "5.3.0"); } catch(e){}
+window.YR_VERSION = "5.4.0";
+try { localStorage.setItem("yrc.ver", "5.4.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4213,7 +4207,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.3";
+    tag.textContent = "v5.4";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
