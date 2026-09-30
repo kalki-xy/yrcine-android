@@ -27,18 +27,9 @@
 <style id="yrcine-v5-slidebar-css">
 /* ===== v5.0: minimalist glass slidebar ===== */
 /* panel: true glass - translucent, deep blur, hairline edge */
-/* glass lives on a decorative non-interactive layer so tap hit-testing can never break (older WebView bug) */
-aside#slidebarDrawer { background: rgba(13,14,20,.55); }
-aside#slidebarDrawer::before {
-  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: rgba(13,14,20,.35);
-  backdrop-filter: blur(28px) saturate(150%);
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-  border-right: 1px solid rgba(255,255,255,.07);
-  box-shadow: 18px 0 48px rgba(0,0,0,.4);
-}
-aside#slidebarDrawer > * { position: relative; z-index: 1; }
-#slidebarBackdrop { background: rgba(0,0,0,.4); }
+/* v5.2: zero GPU filters - heavy backdrop blur froze rendering on low-end devices. Flat translucent panel. */
+aside#slidebarDrawer { background: rgba(13,14,20,.9); border-right: 1px solid rgba(255,255,255,.08); box-shadow: 18px 0 48px rgba(0,0,0,.4); }
+#slidebarBackdrop { background: rgba(0,0,0,.45); }
 
 /* header: strip chrome, hairline only */
 aside#slidebarDrawer > div:first-child {
@@ -159,6 +150,10 @@ function polish() {
 function yr5Close() {
   var dr = document.getElementById("slidebarDrawer"), bd = document.getElementById("slidebarBackdrop");
   if (!dr || !bd) return;
+  if (dr.className.includes("-translate-x-full")) return;
+  var now = Date.now();
+  if (window.__yr5LastClose && now - window.__yr5LastClose < 250) return;
+  window.__yr5LastClose = now;
   var ok = false;
   try { if (window.closeSlidebar) { window.closeSlidebar(); ok = true; } } catch (e) {}
   if (!ok || !dr.className.includes("-translate-x-full")) {
@@ -170,6 +165,7 @@ function yr5Close() {
     if (!window.__yrScrollLock) document.body.style.overflow = "";
   }
 }
+window.yr5Close = yr5Close;
 function arm() {
   polish();
   /* their audio toggle rewrites the status label classes - keep badges quiet */
@@ -180,6 +176,17 @@ function arm() {
   if (xb) xb.onclick = yr5Close;
   if (bdb) bdb.onclick = function (e) { if (e.target === bdb) yr5Close(); };
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") yr5Close(); });
+  /* capture-phase guard: any tap outside the drawer (or on an invisible overlay) closes it.
+     capture runs before ANY other handler, so nothing can swallow this. */
+  function yr5TapGuard(e) {
+    var dr = document.getElementById("slidebarDrawer");
+    if (!dr || dr.className.includes("-translate-x-full")) return;
+    var t = e.target;
+    if (t && t.closest && (t.closest("#slidebarDrawer") || t.closest("#islandBrandBtn"))) return;
+    yr5Close();
+  }
+  document.addEventListener("touchstart", yr5TapGuard, true);
+  document.addEventListener("click", yr5TapGuard, true);
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm);
 else arm();
@@ -4151,8 +4158,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.1.0";
-try { localStorage.setItem("yrc.ver", "5.1.0"); } catch(e){}
+window.YR_VERSION = "5.2.0";
+try { localStorage.setItem("yrc.ver", "5.2.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4177,7 +4184,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.1";
+    tag.textContent = "v5.2";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);

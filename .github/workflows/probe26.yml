@@ -1,0 +1,11 @@
+name: probe26
+on: workflow_dispatch
+jobs:
+  cat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: cat MainActivity
+        run: cat android/app/src/main/java/com/yrcine/voidverse/MainActivity.java
+      - name: cat build.gradle
+        run: cat android/app/build.gradle
