@@ -1,0 +1,24 @@
+name: probe12
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: vercel vs cloudflare sites
+        run: |
+          mkdir -p out
+          python3 - << 'PYEOF'
+          import urllib.request, urllib.parse, sys
+          V = "https://voidanime-backend.vercel.app/api/proxy/image?url="
+          for name, target in [("wc", "https://weebcentral.com/search?text=one+piece"), ("mf", "https://mangafire.to/search?keyword=one+piece")]:
+              u = V + urllib.parse.quote(target, safe="")
+              try:
+                  r = urllib.request.urlopen(u, timeout=30)
+                  b = r.read()
+                  open("out/" + name + "_via_vercel.html", "wb").write(b)
+                  print(name, r.status, len(b))
+              except Exception as e:
+                  print(name, "ERR", e)
+          PYEOF
+      - uses: actions/upload-artifact@v4
+        with: {name: probe12, path: out/}
