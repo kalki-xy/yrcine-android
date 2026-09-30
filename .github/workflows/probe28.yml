@@ -1,0 +1,30 @@
+name: probe28
+on: workflow_dispatch
+jobs:
+  ep2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe eporner direct mp4
+        run: |
+          set -x
+          UA="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+          curl -sL -A "$UA" "https://www.eporner.com/api/v2/video/search/?query=pov&per_page=5&format=json&order=most-popular&thumbsize=big&lq=0&page=1" -o /tmp/s.json
+          python3 -c "import json; d=json.load(open('/tmp/s.json')); [print(v['id'], '|', v['length_min']) for v in d['videos']]"
+          VID=$(python3 -c "import json; d=json.load(open('/tmp/s.json')); print(d['videos'][0]['id'])")
+          echo "=== HEAD direct mp4 (no cookies, fresh session):"
+          curl -sI -A "$UA" "https://gvideo.eporner.com/$VID/$VID.mp4" | head -14
+          echo "=== GET first bytes:"
+          curl -s -A "$UA" -r 0-2047 -o /tmp/chunk.bin -w "HTTP %{http_code} size %{size_download} type %{content_type}\n" "https://gvideo.eporner.com/$VID/$VID.mp4"
+          xxd /tmp/chunk.bin | head -2
+          echo "=== embed html - all gvideo refs and video tag:"
+          curl -s -A "$UA" "https://www.eporner.com/embed/$VID/" -o /tmp/e.html
+          grep -o "https://gvideo[^\"' ]*" /tmp/e.html
+          grep -o "<video[^>]*>" /tmp/e.html | head -2
+          grep -o "source[^>]*src=\"[^\"]*\"" /tmp/e.html | head -4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe28-out
+          path: |
+            /tmp/s.json
+            /tmp/e.html
