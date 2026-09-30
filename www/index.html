@@ -515,7 +515,17 @@ function ensureOverlay() {
   if (dbtn) dbtn.onclick = function () { ov.style.display = "none"; };
   return ov;
 }
+/* v5.8: the eporner player modal was nested inside #viewManga - when the user
+   is in the vault, that view is hidden (display:none), so the modal opened
+   with a 0x0 rect and NOTHING appeared. Relocate it to <body> where it is
+   position:fixed and can never be clipped by a hidden ancestor. */
+function yrEpRelocate() {
+  var epm = document.getElementById("yrEpModal");
+  if (epm && epm.closest && epm.closest(".app-view")) document.body.appendChild(epm);
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", yrEpRelocate); else yrEpRelocate();
 window.__yrEpCheck = function (id) {
+  yrEpRelocate();
   lastEpId = id;
   var ov = ensureOverlay();
   if (ov) ov.style.display = "none";
@@ -4518,8 +4528,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "5.7.0";
-try { localStorage.setItem("yrc.ver", "5.7.0"); } catch(e){}
+window.YR_VERSION = "5.8.0";
+try { localStorage.setItem("yrc.ver", "5.8.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4544,7 +4554,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v5.7";
+    tag.textContent = "v5.8";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
