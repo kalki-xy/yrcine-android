@@ -1,0 +1,28 @@
+name: probe10
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: vercel backend + tmdb anime + voidverse tv
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          K="20be784f740b6b638c906dde5b35efae"
+          # 1) vercel image proxy with a real manga cover
+          curl -sL --max-time 20 -A "$UA" -o out/vercel_img.bin -w "v-img %{http_code} %{content_type} %{size_download}\n" "https://voidanime-backend.vercel.app/api/proxy/image?url=https%3A%2F%2Fcdn.readdetectiveconan.com%2Ffile%2Fmangapill%2Fi%2F2.webp" | tee out/probe10.txt
+          # 2) vercel image proxy asked for HTML (does it pass through non-images?)
+          curl -sL --max-time 25 -A "$UA" -o out/vercel_html.bin -w "v-html %{http_code} %{content_type} %{size_download}\n" "https://voidanime-backend.vercel.app/api/proxy/image?url=https%3A%2F%2Fmangapill.com%2Fsearch%3Fq%3Done%2Bpiece" | tee -a out/probe10.txt
+          # 3) generic /api/proxy endpoint?
+          curl -sL --max-time 25 -A "$UA" -o out/vercel_api.bin -w "v-api %{http_code} %{content_type} %{size_download}\n" "https://voidanime-backend.vercel.app/api/proxy?url=https%3A%2F%2Fmangapill.com%2Fsearch%3Fq%3Done%2Bpiece" | tee -a out/probe10.txt
+          # 4) TMDB anime discover (tv, japanese, animation genre)
+          curl -s --max-time 20 "https://api.themoviedb.org/3/discover/tv?api_key=$K&with_original_language=ja&with_genres=16&sort_by=popularity.desc&page=1" -o out/tmdb_anime.json
+          head -c 400 out/tmdb_anime.json > out/tmdb_head.txt
+          # 5) TMDB trending tv (filter client side for ja+16)
+          curl -s --max-time 20 "https://api.themoviedb.org/3/trending/tv/week?api_key=$K" -o out/tmdb_trending.json
+          # 6) voidverse tv embed with One Piece TMDB id 37854
+          curl -sL --max-time 20 -A "$UA" -o /dev/null -w "vv-tv %{http_code} %{size_download}\n" "https://player.voidverse.me/embed/tv/37854" | tee -a out/probe10.txt
+          # 7) voidverse anime embed anilist 21 (alive check again)
+          curl -sL --max-time 20 -A "$UA" -o /dev/null -w "vv-anime %{http_code} %{size_download}\n" "https://player.voidverse.me/embed/anime/21/1" | tee -a out/probe10.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: probe10, path: out/}
