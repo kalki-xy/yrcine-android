@@ -2464,15 +2464,26 @@ body[data-navpos="right"] #dynamicIslandContainer {
     params.region = localStorage.getItem("yrc.region") || "IN";
     const qs = new URLSearchParams(params).toString();
     const targetUrl = `${TMDB_BASE}${endpoint}?${qs}`;
-
+    const CKEY = "yrc.home.cache";
+    const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
     for (const proxyFn of PROXY_PIPELINE) {
       try {
-        const res = await fetch(proxyFn(targetUrl), { cache: 'no-store' });
-        if (res.ok) return await res.json();
-      } catch (err) {
-        // Fallback retry
-      }
+        const res = await withTimeout(fetch(proxyFn(targetUrl), { cache: 'no-store' }), 6000);
+        if (res.ok) {
+          const data = await withTimeout(res.json(), 5000);
+          try {
+            const cache = JSON.parse(localStorage.getItem(CKEY) || "{}");
+            cache[endpoint] = { t: Date.now(), data: data };
+            localStorage.setItem(CKEY, JSON.stringify(cache));
+          } catch (e) {}
+          return data;
+        }
+      } catch (err) {}
     }
+    try {
+      const cache = JSON.parse(localStorage.getItem(CKEY) || "{}");
+      if (cache[endpoint] && cache[endpoint].data) { console.warn("[YR] serving cached", endpoint); return cache[endpoint].data; }
+    } catch (e) {}
     throw new Error(`Failed to load ${endpoint}`);
   }
 
@@ -3775,7 +3786,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
 })();
 </script>
 
-<script id="yrcine-nfetch">(function(){var seq=0;window.__nfd_cbs=window.__nfd_cbs||{};window.nfetch=function(url){return new Promise(function(resolve){if(!window.AndroidFetch){resolve(null);return}var id=++seq,t=setTimeout(function(){delete window.__nfd_cbs[id];resolve(null)},16000);window.__nfd_cbs[id]=function(ok,body){clearTimeout(t);delete window.__nfd_cbs[id];resolve(ok?body:null)};try{AndroidFetch.get(url,String(id))}catch(e){clearTimeout(t);resolve(null)}})};window.__nfd=function(id,ok,payload){var cb=(window.__nfd_cbs||{})[id];if(cb)cb(!!ok,payload&&payload.v!=null?payload.v:null)}})();</script>
+<script id="yrcine-nfetch">(function(){var seq=0;window.__nfd_cbs=window.__nfd_cbs||{};window.nfetch=function(url){return new Promise(function(resolve){if(!window.AndroidFetch){resolve(null);return}var id=++seq,t=setTimeout(function(){delete window.__nfd_cbs[id];resolve(null)},7000);window.__nfd_cbs[id]=function(ok,body){clearTimeout(t);delete window.__nfd_cbs[id];resolve(ok?body:null)};try{AndroidFetch.get(url,String(id))}catch(e){clearTimeout(t);resolve(null)}})};window.__nfd=function(id,ok,payload){var cb=(window.__nfd_cbs||{})[id];if(cb)cb(!!ok,payload&&payload.v!=null?payload.v:null)}})();</script>
 <style id="yrcine-v38-games-css">
 /* v3.8 - Games section inside the Adult area. FAB + catalog + player overlay. */
 body.yr38-armed:not(.yr38-open) #yr38Fab{display:flex}
@@ -4357,8 +4368,8 @@ try{
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.0.0";
-try { localStorage.setItem("yrc.ver", "4.0.0"); } catch(e){}
+window.YR_VERSION = "4.0.1";
+try { localStorage.setItem("yrc.ver", "4.0.1"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4383,7 +4394,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.0";
+    tag.textContent = "v4.0.1";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
@@ -4462,6 +4473,28 @@ try {
   if (vu) { var mo = new MutationObserver(pump); mo.observe(vu, { attributes: true, attributeFilter: ["class"] }); }
   setInterval(pump, 900);
 } catch(e){}
+
+/* stuck-hero watchdog: Jio-proof retry pill when home data never lands */
+function watchdog(){
+  try {
+    var t = document.getElementById("heroTitle");
+    if (!t) return;
+    var stuck = /loading cinema/i.test(t.textContent || "");
+    var pill = document.getElementById("yrRetryPill");
+    if (stuck && !pill) {
+      pill = document.createElement("button");
+      pill.id = "yrRetryPill";
+      pill.textContent = "TAP TO RETRY";
+      pill.style.cssText = "display:inline-block;margin-top:14px;border-radius:12px;border:1px solid var(--yrc-accent,#e11d48);background:var(--yrc-accent,#e11d48);color:#000;font:800 12px sans-serif;padding:11px 20px;cursor:pointer";
+      pill.onclick = function(){ try { wloc(); } catch(e){} };
+      var k = document.getElementById("heroKicker");
+      (k && k.parentElement || t.parentElement).appendChild(pill);
+    } else if (!stuck && pill) { pill.remove(); }
+  } catch(e){}
+}
+function wloc(){ try { window.location.reload(); } catch(e){} }
+setInterval(watchdog, 3000);
+setTimeout(watchdog, 12000);
 
 function boot(){ chip(); dubUI(); }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
