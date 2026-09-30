@@ -177,6 +177,27 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    /* v5.2: Android back button closes the slidebar drawer first.
+       Runs natively, so it works even if page JS is wedged by something. */
+    @Override
+    public void onBackPressed() {
+        WebView wv = mainWv != null ? mainWv : (bridge != null ? bridge.getWebView() : null);
+        if (wv != null) {
+            wv.evaluateJavascript(
+                "(function(){var d=document.getElementById('slidebarDrawer');"
+                + "if(d&&d.className.indexOf('-translate-x-full')===-1){"
+                + "if(window.yr5Close){window.yr5Close();}else if(window.closeSlidebar){window.closeSlidebar();}"
+                + "return 'closed';}return 'no';})()",
+                value -> {
+                    if (value == null || value.indexOf("closed") === -1) {
+                        MainActivity.super.onBackPressed();
+                    }
+                });
+            return;
+        }
+        super.onBackPressed();
+    }
+
     /* ================= v3.9: offline game store + loopback server ================= */
 
     private void startGameServer() {
