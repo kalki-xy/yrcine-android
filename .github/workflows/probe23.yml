@@ -1,0 +1,46 @@
+name: probe23
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: madara ajax + real chapter page
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import urllib.request, urllib.parse, re
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          def req(url, data=None, referer=None):
+              h = {"User-Agent": UA, "X-Requested-With": "XMLHttpRequest"}
+              if referer: h["Referer"] = referer
+              return urllib.request.Request(url, data=data, headers=h)
+          # 1) ajax POST for Solo Leveling (holder id 26308)
+          try:
+              data = urllib.parse.urlencode({"action": "manga_get_chapters", "manga": "26308"}).encode()
+              r = urllib.request.urlopen(req("https://manhwatop.com/wp-admin/admin-ajax.php", data=data, referer="https://manhwatop.com/manga/solo-leveling-manhwa/"), timeout=25)
+              ab = r.read()
+              open("out/mt_ajax.html", "wb").write(ab)
+              chs = sorted(set(re.findall(r'href="([^"]*chapter[^"]+)"', ab.decode("utf-8", "ignore"))))
+              print("ajax POST:", r.status, len(ab), "| chapter links:", len(chs), "| first:", chs[:2], "| last:", chs[-1:] if chs else None)
+          except Exception as e:
+              print("ajax POST ERR:", str(e)[:100])
+          # 2) real chapter page images (from search results - known live)
+          try:
+              r2 = urllib.request.urlopen(req("https://manhwatop.com/manga/solo-leveling-ragnarok/chapter-201/", referer="https://manhwatop.com/"), timeout=25)
+              cb = r2.read()
+              open("out/mt_real_ch.html", "wb").write(cb)
+              c = cb.decode("utf-8", "ignore")
+              imgs = re.findall(r'<img[^>]+(?:data-src|src)="(https?://[^"]+)"[^>]*', c)
+              imgs = [u for u in imgs if "uploads" in u and "logo" not in u.lower() and "-75x" not in u and "193x" not in u]
+              print("real chapter:", r2.status, len(cb), "| imgs:", len(imgs), imgs[:2])
+              if imgs:
+                  try:
+                      r3 = urllib.request.urlopen(req(imgs[0]), timeout=25)
+                      print("hotlink:", r3.status, len(r3.read()))
+                  except Exception as e:
+                      print("hotlink ERR:", str(e)[:80])
+          except Exception as e:
+              print("real chapter ERR:", str(e)[:100])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe23, path: out/}
