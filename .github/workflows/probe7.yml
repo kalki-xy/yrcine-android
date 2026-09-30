@@ -1,0 +1,33 @@
+name: probe7
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe manga + anime sources
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          # Jikan (MAL unofficial API - anime data)
+          curl -s --max-time 20 -A "$UA" "https://api.jikan.moe/v4/top/anime?filter=airing&limit=3" -o out/jikan_top.json
+          curl -s --max-time 20 -A "$UA" "https://api.jikan.moe/v4/anime/21/full" -o out/jikan_full.json
+          # MangaPill
+          curl -sL --max-time 25 -A "$UA" "https://mangapill.com/search?q=one+piece" -o out/mp_search.html
+          curl -sL --max-time 25 -A "$UA" "https://mangapill.com/manga/one-piece" -o out/mp_series.html
+          # WeebCentral
+          curl -sL --max-time 25 -A "$UA" "https://weebcentral.com/search?text=one+piece" -o out/wc_search.html
+          curl -sL --max-time 25 -A "$UA" "https://weebcentral.com/series/01J76XY7VJQKP8SQP6Y2ZQ8HBX/One-Piece" -o out/wc_series.html
+          # MangaFire
+          curl -sL --max-time 25 -A "$UA" "https://mangafire.to/search?keyword=one+piece" -o out/mf_search.html
+          curl -sL --max-time 25 -A "$UA" "https://mangafire.to/manga/one-piece" -o out/mf_series.html
+          # Megaplay anime embed patterns (anilist ids: One Piece=21, AoT=16498)
+          for U in "https://megaplay.su/stream/anime-2/21/1/sub" "https://megaplay.su/stream/anime/21/1" "https://megaplay.su/embed?anilist_id=21&episode=1" "https://megaplay.bz/stream/anime-2/21/1/sub"; do
+            echo "== $U" >> out/megaplay.txt
+            curl -sL --max-time 20 -A "$UA" -o /dev/null -w "%{http_code} %{size_download} %{url_effective}\n" "$UA" "$U" >> out/megaplay.txt 2>&1 || echo "FAIL" >> out/megaplay.txt
+            curl -sL --max-time 20 -A "$UA" "$U" | head -c 3000 >> out/megaplay.txt; echo "\n---" >> out/megaplay.txt
+          done
+          ls -la out/ >> out/megaplay.txt
+          # sizes log
+          wc -c out/* > out/sizes.txt || true
+      - uses: actions/upload-artifact@v4
+        with: {name: probe7, path: out/}
