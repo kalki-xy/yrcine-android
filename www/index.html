@@ -1031,7 +1031,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
     </div>
 
     <!-- Unlocked Vault Content -->
-    <div id="vaultUnlockedContent" class="hidden"><div id="yrVaultTabs" style="display:flex;gap:8px;margin:0 0 16px"><div id="yrVaultTabGames" class="yr43-tab on" style="max-width:180px">GAMES</div><div id="yrVaultTabEp" class="yr43-tab" style="max-width:180px">EPORN.ER</div></div><div id="yrVaultEpPane"><div class="yr43-filter"><input id="yrEpSearch" type="search" placeholder="Search Eporn.er..." style="flex:1;min-width:130px"><select id="yrEpOrder"><option value="latest">Latest</option><option value="longest">Longest</option><option value="top-rated">Top rated</option><option value="most-popular">Most viewed</option><option value="top-weekly">Top weekly</option><option value="top-monthly">Top monthly</option></select><button id="yrEpGo" class="yr43-btn acc">SEARCH</button></div><div id="yrEpGrid" class="yr43-grid"></div></div>
+    <div id="vaultUnlockedContent" class="hidden"><div id="yrVaultTabs" style="display:flex;gap:8px;margin:0 0 16px"><div id="yrVaultTabGames" class="yr43-tab on" style="max-width:180px">GAMES</div><div id="yrVaultTabEp" class="yr43-tab" style="max-width:180px">EPORN.ER</div></div><div id="yrVaultEpPane"><div class="yr43-filter"><input id="yrEpSearch" type="search" placeholder="Search Eporn.er..." style="flex:1;min-width:130px"><select id="yrEpOrder"><option value="latest">Latest</option><option value="longest">Longest</option><option value="top-rated">Top rated</option><option value="most-popular">Most viewed</option><option value="top-weekly">Top weekly</option><option value="top-monthly">Top monthly</option></select><button id="yrEpGo" class="yr43-btn acc">SEARCH</button></div><div class="yr43-filter" id="yrEpCats" style="margin-top:-4px"></div><div class="yr43-sec" id="yrEpRailLatestHead">FRESH DROPS</div><div id="yrEpRailLatest" class="yr43-rail"></div><div class="yr43-sec">MOST VIEWED THIS WEEK</div><div id="yrEpRailViews" class="yr43-rail"></div><div class="yr43-sec">ALL-TIME TOP RATED</div><div id="yrEpRailRated" class="yr43-rail"></div><div class="yr43-sec">FULL LIBRARY</div><div id="yrEpGrid" class="yr43-grid"></div></div>
       <div class="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
         <div>
           <span class="text-xs font-mono font-bold text-rose-400 uppercase tracking-widest">Unlocked Session</span>
@@ -3656,30 +3656,80 @@ else wire();
 if (window.__YR45EP) return; window.__YR45EP = 1;
 var EPI = "https://www.eporner.com/api/v2/video/search/";
 var VERCEL = "https://voidanime-backend.vercel.app/api/proxy/image?url=";
-var epState = { q: "", order: "latest", page: 1, items: [] };
+var CATS = ["all", "amateur", "asian", "japanese", "indian", "milf", "teen", "latina", "ebony", "pov", "lesbian", "hd"];
+var state = { q: "all", order: "latest", page: 1, items: [], catsOn: false };
 function epFetch(url) {
+  /* native bridge first (APK, no CORS), then direct, then user's Vercel passthrough for blocked networks */
+  if (window.AndroidFetch && window.nfetch) {
+    return window.nfetch(url).then(function (b) { if (b) return JSON.parse(b); throw new Error("native empty"); })
+      .catch(function () { return epViaVercel(url); });
+  }
   return fetch(url).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-    .catch(function () {
-      return fetch(VERCEL + encodeURIComponent(url)).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
-    });
+    .catch(function () { return epViaVercel(url); });
+}
+function epViaVercel(url) {
+  return fetch(VERCEL + encodeURIComponent(url)).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.text(); })
+    .then(function (t) { return JSON.parse(t); });
+}
+function fmtViews(v) {
+  if (!v) return "";
+  if (v >= 1000000) return (v / 1000000).toFixed(1) + "M";
+  if (v >= 1000) return Math.round(v / 1000) + "K";
+  return String(v);
+}
+function epCard(v, rail) {
+  var th = (v.default_thumb && v.default_thumb.src) || (v.thumbs && v.thumbs[0] && v.thumbs[0].src) || "";
+  var title = String(v.title || "").replace(/</g, "&lt;").slice(0, 60);
+  var meta = (v.length_min || "") + (v.views ? " · " + fmtViews(v.views) : "") + (v.rate ? " · " + Number(v.rate).toFixed(1) + "★" : "");
+  return '<div class="yr43-card" data-ep="' + v.id + '"' + (rail ? ' style="flex:0 0 150px"' : "") + '><img loading="lazy" src="' + th + '" alt="">' +
+    '<div class="t">' + title + '</div><div class="s">' + meta + "</div></div>";
+}
+function epQuery(q, order, page) {
+  return EPI + "?query=" + encodeURIComponent(q || "all") + "&per_page=40&format=json&order=" + (order || "latest") + "&thumbsize=big&lq=0&page=" + (page || 1);
 }
 function epSearch(reset) {
-  if (reset) { epState.page = 1; epState.items = []; }
+  if (reset) { state.page = 1; state.items = []; }
   var host = document.getElementById("yrEpGrid");
   host.innerHTML = '<div class="yr43-empty">Loading…</div>';
-  var u = EPI + "?query=" + encodeURIComponent(epState.q || "all") + "&per_page=40&format=json&order=" + epState.order + "&thumbsize=big&lq=0&page=" + epState.page;
-  epFetch(u).then(function (d) {
+  epFetch(epQuery(state.q, state.order, state.page)).then(function (d) {
     var vs = (d && d.videos) || [];
     if (!vs.length) { host.innerHTML = '<div class="yr43-empty">No results</div>'; return; }
-    host.innerHTML = vs.map(function (v) {
-      var th = (v.default_thumb && v.default_thumb.src) || (v.thumbs && v.thumbs[0] && v.thumbs[0].src) || "";
-      return '<div class="yr43-card" data-ep="' + v.id + '"><img loading="lazy" src="' + th + '" alt="">' +
-        '<div class="t">' + String(v.title || "").replace(/</g, "&lt;").slice(0, 48) + '</div>' +
-        '<div class="s">' + (v.length_min || "") + " min</div></div>";
-    }).join("") + '<button id="yrEpMore" class="yr43-btn acc" style="grid-column:1/-1">LOAD MORE</button>';
+    state.items = state.items.concat(vs);
+    host.innerHTML = state.items.map(function (v) { return epCard(v); }).join("") + '<button id="yrEpMore" class="yr43-btn acc" style="grid-column:1/-1">LOAD MORE</button>';
     var more = document.getElementById("yrEpMore");
-    if (more) more.onclick = function () { epState.page++; epSearch(false); };
+    if (more) more.onclick = function () { state.page++; epSearch(false); };
   }).catch(function () { host.innerHTML = '<div class="yr43-empty">Could not load — try VPN if your network blocks it</div>'; });
+}
+function epRail(hostId, order, q) {
+  var host = document.getElementById(hostId);
+  if (!host) return;
+  host.innerHTML = '<div class="yr43-empty" style="padding:14px">Loading…</div>';
+  epFetch(epQuery(q || "all", order, 1)).then(function (d) {
+    var vs = (d && d.videos || []).slice(0, 12);
+    host.innerHTML = vs.length ? vs.map(function (v) { return epCard(v, true); }).join("") : '<div class="yr43-empty" style="padding:14px">Nothing here</div>';
+  }).catch(function () { host.innerHTML = ""; });
+}
+function epRails() {
+  epRail("yrEpRailLatest", "latest", state.q === "all" ? "all" : state.q);
+  epRail("yrEpRailViews", "top-weekly", state.q === "all" ? "all" : state.q);
+  epRail("yrEpRailRated", "top-rated", state.q === "all" ? "all" : state.q);
+  document.getElementById("yrEpRailLatestHead").textContent = (state.q === "all" ? "FRESH DROPS" : state.q.toUpperCase() + " — FRESH").toUpperCase();
+}
+function epCats() {
+  var host = document.getElementById("yrEpCats");
+  host.innerHTML = CATS.map(function (c) {
+    return '<button class="yr43-chip' + (c === "all" ? " on" : "") + '" data-epcat="' + c + '">' + c.toUpperCase() + "</button>";
+  }).join("");
+  Array.prototype.forEach.call(host.querySelectorAll("[data-epcat]"), function (b) {
+    b.onclick = function () {
+      Array.prototype.forEach.call(host.querySelectorAll("[data-epcat]"), function (x) { x.classList.remove("on"); });
+      b.classList.add("on");
+      state.q = b.getAttribute("data-epcat");
+      document.getElementById("yrEpSearch").value = "";
+      epRails();
+      epSearch(true);
+    };
+  });
 }
 function epPlay(id, title) {
   document.getElementById("yrEpFrame").src = "https://www.eporner.com/embed/" + id + "/";
@@ -3688,22 +3738,39 @@ function epPlay(id, title) {
 }
 function wire() {
   var d = document;
-  d.getElementById("yrEpGo").onclick = function () { epState.q = d.getElementById("yrEpSearch").value.trim(); epSearch(true); };
+  d.getElementById("yrEpGo").onclick = function () {
+    var v = d.getElementById("yrEpSearch").value.trim();
+    Array.prototype.forEach.call(d.querySelectorAll("[data-epcat]"), function (x) { x.classList.remove("on"); });
+    state.q = v || "all";
+    epRails();
+    epSearch(true);
+  };
   d.getElementById("yrEpSearch").addEventListener("keydown", function (e) { if (e.key === "Enter") d.getElementById("yrEpGo").click(); });
-  d.getElementById("yrEpOrder").onchange = function () { epState.order = this.value; epSearch(true); };
+  d.getElementById("yrEpOrder").onchange = function () { state.order = this.value; epSearch(true); };
   d.getElementById("yrEpGrid").addEventListener("click", function (e) {
     var c = e.target.closest ? e.target.closest(".yr43-card") : null;
     if (c) epPlay(c.getAttribute("data-ep"), c.querySelector(".t").textContent);
   });
+  ["yrEpRailLatest", "yrEpRailViews", "yrEpRailRated"].forEach(function (id) {
+    d.getElementById(id).addEventListener("click", function (e) {
+      var c = e.target.closest ? e.target.closest(".yr43-card") : null;
+      if (c) epPlay(c.getAttribute("data-ep"), c.querySelector(".t").textContent);
+    });
+  });
   d.getElementById("yrEpClose").onclick = function () { d.getElementById("yrEpFrame").src = "about:blank"; d.getElementById("yrEpModal").classList.remove("open"); };
   d.getElementById("yrVaultTabGames").onclick = function () { epVaultTab("games"); };
   d.getElementById("yrVaultTabEp").onclick = function () { epVaultTab("ep"); };
+  epCats();
 }
 function epVaultTab(which) {
   document.getElementById("yrVaultTabGames").classList.toggle("on", which === "games");
   document.getElementById("yrVaultTabEp").classList.toggle("on", which === "ep");
   document.getElementById("vaultUnlockedContent").classList.toggle("epmode", which === "ep");
-  if (which === "ep" && !document.getElementById("yrEpGrid").innerHTML.trim()) epSearch(true);
+  if (which === "ep" && !state.catsOn) {
+    state.catsOn = true;
+    epRails();
+    epSearch(true);
+  }
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
 else wire();
@@ -3922,8 +3989,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.8.0";
-try { localStorage.setItem("yrc.ver", "4.8.0"); } catch(e){}
+window.YR_VERSION = "4.9.0";
+try { localStorage.setItem("yrc.ver", "4.9.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -3948,7 +4015,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.8";
+    tag.textContent = "v4.9";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
