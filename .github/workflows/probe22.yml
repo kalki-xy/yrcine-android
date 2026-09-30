@@ -1,0 +1,57 @@
+name: probe22
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: manhwatop chapter page validation
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import urllib.request, urllib.parse, re
+          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"}
+          def get(url, timeout=25, referer=None):
+              h = dict(UA)
+              if referer: h["Referer"] = referer
+              req = urllib.request.Request(url, headers=h)
+              r = urllib.request.urlopen(req, timeout=timeout)
+              return r.status, r.read()
+          # 1) chapter-1 of the ORIGINAL Solo Leveling
+          st, b = get("https://manhwatop.com/manga/solo-leveling-manhwa/chapter-1/")
+          open("out/mt_ch1.html", "wb").write(b)
+          c = b.decode("utf-8", "ignore")
+          print("ch1:", st, len(b))
+          # chapter dropdown options
+          opts = re.findall(r'<option[^>]+value="([^"]*chapter[^"]*)"[^>]*>([^<]{0,40})</option>', c)
+          print("select options:", len(opts), opts[:3])
+          # images
+          imgs = re.findall(r'<img[^>]+(?:data-src|src)="(https?://[^"]+)"[^>]*', c)
+          imgs = [u for u in imgs if "wp-content/uploads" in u or "chapter" in u]
+          print("reader images:", len(imgs), imgs[:3])
+          if imgs:
+              try:
+                  st4, b4 = get(imgs[0])
+                  print("hotlink no-referer:", st4, len(b4))
+              except Exception as e:
+                  print("hotlink ERR:", str(e)[:90])
+          # 2) series page -> latest chapter hint in search/series
+          st2, b2 = get("https://manhwatop.com/manga/solo-leveling-manhwa/")
+          s2 = b2.decode("utf-8", "ignore")
+          latest = re.findall(r'href="(https://manhwatop\.com/manga/solo-leveling-manhwa/chapter-[^"]+)"', s2)
+          print("series page chapter links:", len(set(latest)))
+          m = re.search(r'manga-chapters-holder[^>]*data-id="(\d+)"', s2)
+          print("holder id:", m.group(1) if m else None)
+          # 3) POST ajax chapters (what the native bridge will do)
+          try:
+              data = urllib.parse.urlencode({"action": "manga_get_chapters", "manga": m.group(1) if m else "1"}).encode()
+              req = urllib.request.Request("https://manhwatop.com/wp-admin/admin-ajax.php", data=data, headers=dict(UA))
+              r = urllib.request.urlopen(req, timeout=25)
+              ab = r.read()
+              open("out/mt_ajax.html", "wb").write(ab)
+              chs = re.findall(r'href="([^"]*chapter-[^"]+)"', ab.decode("utf-8", "ignore"))
+              print("ajax POST chapters:", r.status, len(ab), "| links:", len(set(chs)))
+          except Exception as e:
+              print("ajax POST ERR:", str(e)[:90])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe22, path: out/}
