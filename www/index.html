@@ -4537,8 +4537,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "6.0.0";
-try { localStorage.setItem("yrc.ver", "6.0.0"); } catch(e){}
+window.YR_VERSION = "6.1.0";
+try { localStorage.setItem("yrc.ver", "6.1.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -4563,7 +4563,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v6.0";
+    tag.textContent = "v6.1";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
@@ -4870,5 +4870,154 @@ else boot();
 })();
 </script>
 
+<style id="yrcine-v61-vault-css">
+/* ============ YRcine v6.1 VAULT UI UPGRADE ============ */
+#viewVault{--yrv:var(--yrc-accent,#e11d48);--yrv2:#f43f5e}
+/* ---- PIN gate ---- */
+#vaultLockScreen{position:relative;background:linear-gradient(165deg,rgba(34,16,24,.94),rgba(13,12,17,.97))!important;border:1px solid rgba(244,63,94,.24)!important;border-radius:28px!important;box-shadow:0 26px 80px -18px rgba(244,63,94,.32),0 10px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden;padding:30px 24px 24px!important;transition:box-shadow .3s}
+#vaultLockScreen::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(244,63,94,.9),transparent)}
+#vaultLockScreen::after{content:"";position:absolute;width:220px;height:220px;left:-70px;top:-70px;background:radial-gradient(closest-side,rgba(244,63,94,.18),transparent);pointer-events:none}
+#vaultLockScreen h2{font-family:'Syne',sans-serif!important;letter-spacing:.5px;background:linear-gradient(120deg,#fff 30%,#fda4af)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
+#vaultLockScreen .yr61-lockicon{position:relative}
+#vaultLockScreen .yr61-lockicon::after{content:"";position:absolute;inset:-7px;border-radius:20px;border:1px solid rgba(244,63,94,.35);animation:yr61ring 2.6s ease-out infinite}
+@keyframes yr61ring{0%{transform:scale(.86);opacity:.9}70%{transform:scale(1.12);opacity:0}100%{opacity:0}}
+#pinDotsRow span{width:15px;height:15px;border:1.5px solid rgba(255,255,255,.26);background:transparent;transition:all .2s;box-shadow:0 0 0 0 rgba(244,63,94,0)}
+#pinDotsRow span[class*="bg-rose"]{border-color:#fb7185;background:linear-gradient(135deg,#f43f5e,#e11d48)!important;box-shadow:0 0 12px rgba(244,63,94,.7)}
+#vaultLockScreen .pin-digit-btn{justify-self:center;width:64px;height:64px;border-radius:50%;margin:5px 0;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);color:#fff;font:700 21px 'JetBrains Mono',monospace;position:relative;transition:transform .12s,background .2s,border-color .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#vaultLockScreen .pin-digit-btn:hover{background:rgba(255,255,255,.08)}
+#vaultLockScreen .pin-digit-btn:active{transform:scale(.88);background:rgba(244,63,94,.18);border-color:rgba(244,63,94,.5)}
+.yr61-klet{position:absolute;bottom:8px;left:0;right:0;font:600 7px 'JetBrains Mono',monospace;letter-spacing:1.6px;color:rgba(255,255,255,.32)}
+#vaultLockScreen .pin-backspace-btn,#vaultLockScreen .pin-clear-btn{justify-self:center;width:64px;height:64px;border-radius:50%;margin:5px 0;font:700 9px 'JetBrains Mono',monospace;letter-spacing:.5px}
+#vaultLockScreen .pin-backspace-btn{font-size:17px}
+/* ---- vault header ---- */
+.yr61-vhead{border-radius:18px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.02));padding:15px 16px!important;position:relative;overflow:hidden;box-shadow:0 14px 40px -18px rgba(0,0,0,.6)}
+.yr61-vhead::before{content:"";position:absolute;top:0;left:0;height:2px;width:45%;background:linear-gradient(90deg,var(--yrv),transparent)}
+.yr61-vhead>div>span:first-child{font:800 9px 'JetBrains Mono',monospace!important;letter-spacing:2px;color:#fb7185!important;opacity:1}
+/* ---- tabs: segmented glass ---- */
+#yrVaultTabs{gap:6px!important;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:99px;padding:4px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#yrVaultTabs .yr43-tab{border:1px solid transparent!important;background:transparent!important;color:rgba(255,255,255,.48)!important;font:800 10.5px 'JetBrains Mono',monospace!important;letter-spacing:1.8px;border-radius:99px!important;padding:9px 0!important;transition:all .25s;max-width:none!important}
+#yrVaultTabs .yr43-tab.on{background:linear-gradient(135deg,var(--yrv),var(--yrv2))!important;color:#fff!important;box-shadow:0 6px 22px -6px rgba(244,63,94,.65)}
+/* ---- search bar ---- */
+.yr61-searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.yr61-searchbar input{flex:1;min-width:150px}
+#yrVaultEpPane .yr43-filter input{border-radius:99px;padding:9px 14px 9px 36px;background:rgba(255,255,255,.055) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-opacity='0.55' stroke-width='2.2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 13px center/13px;border:1px solid rgba(255,255,255,.13);transition:border-color .2s,box-shadow .2s}
+#yrVaultEpPane .yr43-filter input:focus{border-color:rgba(244,63,94,.55);box-shadow:0 0 0 3px rgba(244,63,94,.14)}
+#yrVaultEpPane .yr43-filter select{border-radius:99px;padding:9px 14px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055)}
+/* ---- chips ---- */
+#viewVault .yr43-chip{border-radius:99px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:rgba(255,255,255,.62);padding:7px 14px;font:700 10.5px 'Plus Jakarta Sans',sans-serif;transition:all .22s;cursor:pointer}
+#viewVault .yr43-chip:hover{border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.85)}
+#viewVault .yr43-chip.on{border-color:transparent;background:linear-gradient(135deg,var(--yrv),var(--yrv2));color:#fff;box-shadow:0 6px 20px -6px rgba(244,63,94,.6)}
+/* ---- section headers ---- */
+#viewVault .yr43-sec{display:flex;align-items:center;gap:9px;font:800 11px 'JetBrains Mono',monospace!important;letter-spacing:2px;color:rgba(255,255,255,.92)!important;margin:26px 0 12px!important}
+#viewVault .yr43-sec::before{content:"";width:4px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--yrv),var(--yrv2));box-shadow:0 0 12px rgba(244,63,94,.55)}
+#viewVault .yr43-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(244,63,94,.4),transparent)}
+/* ---- cards ---- */
+#viewVault .yr43-grid{gap:10px}
+#viewVault .yr43-card{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:#101016;overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s}
+#viewVault .yr43-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px -14px rgba(244,63,94,.5);border-color:rgba(244,63,94,.5)}
+#viewVault .yr43-card img{transition:transform .5s}
+#viewVault .yr43-card:hover img{transform:scale(1.07)}
+#viewVault .yr43-card .t{position:absolute;left:0;right:0;bottom:14px;padding:24px 9px 0;font:700 11px/1.35 'Plus Jakarta Sans',sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(transparent,rgba(4,4,8,.94) 72%)}
+#viewVault .yr43-card .s{position:absolute;left:9px;right:9px;bottom:4px;font:700 8.5px 'JetBrains Mono',monospace;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;padding:0}
+.yr61-dur{position:absolute;top:7px;right:7px;background:rgba(6,6,10,.74);border:1px solid rgba(255,255,255,.17);border-radius:7px;padding:2.5px 6px;font:700 9px 'JetBrains Mono',monospace;color:#fff;backdrop-filter:blur(4px);z-index:2}
+.yr61-rank{position:absolute;left:5px;top:4px;font:900 40px/1 'Syne',sans-serif;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.9);text-shadow:0 5px 20px rgba(0,0,0,.65);z-index:2;pointer-events:none}
+/* ---- player modal ---- */
+#yrEpModal{background:rgba(3,3,7,.92)!important;backdrop-filter:blur(6px)!important}
+#yrEpModal .yr61-pwrap{max-width:1000px}
+#yrEpModal .yr61-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+#yrEpModal .yr61-live{display:inline-flex;align-items:center;gap:6px;font:800 9px 'JetBrains Mono',monospace;letter-spacing:1.6px;color:#f43f5e;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);border-radius:99px;padding:5px 10px;white-space:nowrap}
+.yr61-dot{width:6px;height:6px;border-radius:50%;background:#f43f5e;animation:yr61pulse 1.6s infinite}
+@keyframes yr61pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(244,63,94,.55)}50%{opacity:.5;box-shadow:0 0 0 5px rgba(244,63,94,0)}}
+#yrEpModal #yrEpTitle{font:800 13px 'Plus Jakarta Sans',sans-serif!important;color:#fff!important;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#yrEpModal #yrEpClose{border-radius:99px!important;padding:8px 15px!important;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.18)!important;font:800 10px 'JetBrains Mono',monospace!important;letter-spacing:1px;transition:all .2s}
+#yrEpModal #yrEpClose:hover{background:rgba(244,63,94,.2)!important;border-color:rgba(244,63,94,.5)!important}
+#yrEpModal .yr61-frame{position:relative;padding-top:56.25%;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:#000;box-shadow:0 34px 90px -22px rgba(244,63,94,.4),0 12px 34px rgba(0,0,0,.65)}
+#yrEpModal .yr61-frame::before{content:"";position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);z-index:3;pointer-events:none}
+/* ---- connection report overlay ---- */
+#yrEpNetOverlay{border-radius:22px!important;backdrop-filter:blur(10px)!important}
+#yrEpNetOverlay .yr61-nrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07);font:700 10px 'JetBrains Mono',monospace;color:rgba(255,255,255,.8)}
+</style>
+<script id="yrcine-v61-vault-js">
+(function(){
+  function boot(){
+    try{
+      var d=document;
+      /* lock icon pulse class */
+      var ls=d.getElementById("vaultLockScreen");
+      if(ls){ var ic=ls.querySelector("div"); if(ic&&!ic.classList.contains("yr61-lockicon")) ic.classList.add("yr61-lockicon"); }
+      /* keypad letters */
+      var LET={"1":"","2":"ABC","3":"DEF","4":"GHI","5":"JKL","6":"MNO","7":"PQRS","8":"TUV","9":"WXYZ","0":"+"};
+      d.querySelectorAll("#vaultLockScreen .pin-digit-btn").forEach(function(b){
+        var dg=b.getAttribute("data-digit");
+        if(dg&&LET[dg]!==undefined&&!b.querySelector(".yr61-klet")){
+          var sp=d.createElement("span"); sp.className="yr61-klet"; sp.textContent=LET[dg]; b.appendChild(sp);
+        }
+      });
+      /* glass search bar (moves existing nodes - listeners preserved) */
+      var inp=d.getElementById("yrEpSearch"),sel=d.getElementById("yrEpOrder"),go=d.getElementById("yrEpGo");
+      if(inp&&inp.parentElement&&!inp.parentElement.classList.contains("yr61-searchbar")){
+        var bar=d.createElement("div"); bar.className="yr61-searchbar";
+        inp.parentElement.insertBefore(bar,inp);
+        bar.appendChild(inp); if(sel)bar.appendChild(sel); if(go)bar.appendChild(go);
+      }
+      /* vault header */
+      var vh=d.querySelector("#vaultUnlockedContent > div.mb-6"); if(vh) vh.classList.add("yr61-vhead");
+      /* player chrome */
+      var m=d.getElementById("yrEpModal");
+      if(m&&m.firstElementChild){
+        var w=m.firstElementChild; w.classList.add("yr61-pwrap");
+        var head=w.firstElementChild;
+        if(head&&!head.querySelector(".yr61-live")){
+          head.classList.add("yr61-head");
+          var chip=d.createElement("span"); chip.className="yr61-live";
+          chip.innerHTML='<span class="yr61-dot"></span>NOW PLAYING';
+          head.insertBefore(chip,head.firstChild);
+        }
+        var frame=d.getElementById("yrEpFrame");
+        if(frame&&frame.parentElement){
+          var fr=frame.parentElement;
+          fr.classList.add("yr61-frame");
+          fr.style.borderRadius="18px"; fr.style.borderColor="rgba(255,255,255,.14)";
+          fr.style.boxShadow="0 34px 90px -22px rgba(244,63,94,.4),0 12px 34px rgba(0,0,0,.65)";
+        }
+      }
+      /* card adornments: duration badge + rail rank numbers */
+      function adorn(card,rank){
+        var sm=card.querySelector(".s"),dur="";
+        if(sm&&!card.querySelector(".yr61-dur")){
+          var parts=sm.textContent.split("\u00b7");
+          dur=parts[0]?parts[0].trim():"";
+          if(parts.length>1) sm.textContent=parts.slice(1).join("\u00b7").replace(/^\s+/,"");
+        }
+        if(dur&&!card.querySelector(".yr61-dur")){
+          var b=d.createElement("span"); b.className="yr61-dur"; b.textContent=dur; card.appendChild(b);
+        }
+        if(rank&&!card.querySelector(".yr61-rank")){
+          var r=d.createElement("span"); r.className="yr61-rank"; r.textContent=rank; card.appendChild(r);
+        }
+      }
+      function scanRail(el,ranked){
+        var cs=el.querySelectorAll(".yr43-card");
+        for(var i=0;i<cs.length;i++){
+          if(cs[i].getAttribute("data-yr61")) continue;
+          cs[i].setAttribute("data-yr61","1");
+          adorn(cs[i],ranked&&i<10?String(i+1):null);
+        }
+      }
+      function scan(){
+        var ids=["yrEpRailLatest","yrEpRailViews","yrEpRailRated"];
+        for(var k=0;k<ids.length;k++){ var el=d.getElementById(ids[k]); if(el) scanRail(el,true); }
+        var g=d.getElementById("yrEpGrid"); if(g) scanRail(g,false);
+      }
+      var mo=new MutationObserver(function(){ setTimeout(scan,0); });
+      var watch=["yrEpRailLatest","yrEpRailViews","yrEpRailRated","yrEpGrid"];
+      for(var q=0;q<watch.length;q++){ var el2=d.getElementById(watch[q]); if(el2) mo.observe(el2,{childList:true,subtree:true}); }
+      scan();
+    }catch(e){}
+  }
+  var dd=document;
+  if(dd.readyState==="loading") dd.addEventListener("DOMContentLoaded",boot); else boot();
+})();
+</script>
 </body>
 </html>
