@@ -1,0 +1,18 @@
+name: probe18
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: iframe framing headers check
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          for U in "https://mangafire.to" "https://weebcentral.com"; do
+            echo "== $U"
+            curl -sI --max-time 20 -A "$UA" "$U" | grep -i "x-frame-options\|content-security-policy\|server:\|cf-" | head -6
+            echo "-- with referer (iframe sim):"
+            curl -sI --max-time 20 -A "$UA" -H "Referer: https://yrcine.local/" "$U" | grep -i "x-frame-options\|content-security-policy\|HTTP/" | head -4
+          done
+      - uses: actions/upload-artifact@v4
+        with: {name: probe18, path: out/}
+  # no out dir needed; logs suffice
