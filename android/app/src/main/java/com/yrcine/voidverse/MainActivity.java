@@ -1,5 +1,6 @@
 package com.yrcine.voidverse;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -170,6 +171,9 @@ public class MainActivity extends BridgeActivity {
             s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             startGameServer();
             wv.addJavascriptInterface(new YRGames(), "YRGames");
+            // v4.7: open Cloudflare-guarded sites (MangaFire/WeebCentral) in the real browser -
+            // they send x-frame-options SAMEORIGIN + a CF challenge, so in-app iframes can never pass
+            wv.addJavascriptInterface(new OpenExtern(), "YROpen");
         }
     }
 
@@ -370,6 +374,21 @@ public class MainActivity extends BridgeActivity {
     }
 
     /** JS bridge: window.YRGames — offline game downloads. */
+    /* ================= v4.7: external browser bridge ================= */
+    private class OpenExtern {
+        @JavascriptInterface
+        public void open(final String url) {
+            runOnUiThread(() -> {
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception ignored) {
+                }
+            });
+        }
+    }
+
     private class YRGames {
         @JavascriptInterface
         public int getPort() {
