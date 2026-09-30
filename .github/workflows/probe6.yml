@@ -1,0 +1,40 @@
+name: probe6
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test keys + harvest seed
+        run: |
+          set -e
+          KEYS="20be784f740b6b638c906dde5b35efae c9873e67c5e03bd61e79d852c2fd46a6 992758a4802a699e8df27d4d6efc34fb"
+          GOOD=""
+          for K in $KEYS; do
+            R=$(curl -s --max-time 25 "https://api.themoviedb.org/3/trending/all/day?api_key=$K" | head -c 80)
+            echo "$K => $R" >> keyresult.txt
+            if echo "$R" | grep -q results; then GOOD=$K; break; fi
+          done
+          echo "WORKING=$GOOD" >> keyresult.txt
+          echo '{}' > seed.json
+          if [ -n "$GOOD" ]; then
+            curl -s --max-time 25 "https://api.themoviedb.org/3/trending/all/day?api_key=$GOOD" -o trending.json
+            curl -s --max-time 25 "https://api.themoviedb.org/3/movie/popular?api_key=$GOOD&page=1" -o popular_mov.json
+            curl -s --max-time 25 "https://api.themoviedb.org/3/tv/popular?api_key=$GOOD&page=1" -o popular_tv.json
+            curl -s --max-time 25 "https://api.themoviedb.org/3/movie/top_rated?api_key=$GOOD&page=1" -o top_rated.json
+            python3 -c "
+import json, glob
+keep = ['id','title','name','media_type','release_date','first_air_date','backdrop_path','poster_path','vote_average']
+out = {}
+for f in ['trending.json','popular_mov.json','popular_tv.json','top_rated.json']:
+    try:
+        d = json.load(open(f))
+        out[f.replace('.json','')] = [{k: r[k] for k in keep if k in r} for r in (d.get('results') or [])[:20]]
+    except Exception as e: print('bad', f, e)
+json.dump(out, open('seed.json','w'), separators=(',',':'))
+print('seed size', len(json.dumps(out)))
+"
+          fi
+      - uses: actions/upload-artifact@v4
+        with: {name: probe6, path: "keyresult.txt"}
+      - uses: actions/upload-artifact@v4
+        with: {name: seed6, path: "seed.json"}
