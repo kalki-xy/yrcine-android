@@ -991,7 +991,7 @@ body[data-navpos="right"] #dynamicIslandContainer {
     </div>
   </div>
 
-  <div id="viewAnime" class="app-view hidden px-4 sm:px-6"><div class="pt-4"><span class="text-xs font-extrabold text-yrc-accent uppercase tracking-widest">Simulcast Library</span><h1 class="font-display text-3xl sm:text-4xl font-black text-white mt-1">Anime</h1><div class="yr43-filter"><input id="yrAnimeSearch" type="search" placeholder="Search anime..." style="flex:1;min-width:150px"><select id="yrAnimeFormat"><option value="">All formats</option><option value="TV">TV</option><option value="TV_SHORT">TV Short</option><option value="MOVIE">Movie</option><option value="OVA">OVA</option><option value="ONA">ONA</option><option value="SPECIAL">Special</option></select><select id="yrAnimeStatus"><option value="">Any status</option><option value="RELEASING">Airing</option><option value="FINISHED">Finished</option><option value="NOT_YET_RELEASED">Upcoming</option></select><select id="yrAnimeSort"><option value="TRENDING_DESC">Trending</option><option value="POPULARITY_DESC">Popular</option><option value="SCORE_DESC">Top rated</option><option value="START_DATE_DESC">Newest</option></select><select id="yrAnimeGenre"><option value="">All genres</option><option value="Action">Action</option><option value="Adventure">Adventure</option><option value="Comedy">Comedy</option><option value="Drama">Drama</option><option value="Ecchi">Ecchi</option><option value="Fantasy">Fantasy</option><option value="Horror">Horror</option><option value="Mahou Shoujo">Mahou Shoujo</option><option value="Mecha">Mecha</option><option value="Music">Music</option><option value="Mystery">Mystery</option><option value="Psychological">Psychological</option><option value="Romance">Romance</option><option value="School">School</option><option value="Sci-Fi">Sci-Fi</option><option value="Seinen">Seinen</option><option value="Shoujo">Shoujo</option><option value="Shounen">Shounen</option><option value="Slice of Life">Slice of Life</option><option value="Sports">Sports</option><option value="Supernatural">Supernatural</option><option value="Thriller">Thriller</option></select></div><div class="yr43-sec">AIRING NOW</div><div id="yrAnimeAiring" class="yr43-rail"></div><div class="yr43-sec">TRENDING</div><div id="yrAnimeTrending" class="yr43-rail"></div><div class="yr43-sec">ALL-TIME TOP</div><div id="yrAnimeTop" class="yr43-rail"></div><div class="yr43-sec">FULL LIBRARY</div><div id="yrAnimeGrid" class="yr43-grid"></div><p class="yr43-note">Data: AniList · Player: VoidVerse · sub & dub handled by the player</p></div><div id="yrAnimeModal" class="yr43-modal"><div class="box" id="yrAnimeDetailBox"></div><button id="yrAnimeClose" class="yr43-btn" style="position:fixed;top:16px;right:16px">CLOSE ✕</button></div><div id="yrAnimeWatchModal" class="yr43-modal" style="max-width:none"><div style="width:100%;max-width:1000px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span id="yrWatchTitle" style="font:800 13px 'Plus Jakarta Sans',sans-serif;color:#fff"></span><button id="yrWatchClose" class="yr43-btn">CLOSE ✕</button></div><div style="position:relative;padding-top:56.25%;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#000"><iframe id="yrAnimeFrame" src="about:blank" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div><div style="display:flex;gap:8px;align-items:center;margin-top:10px;justify-content:center"><button id="yrWatchPrev" class="yr43-btn">◀ PREV EP</button><input id="yrAnimeEpNow" type="number" min="1" value="1" style="width:74px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px;font:700 12px monospace;text-align:center;outline:none"><button id="yrWatchNext" class="yr43-btn">NEXT EP ▶</button></div></div></div>
+  <div id="viewAnime" class="app-view hidden px-4 sm:px-6"><div class="pt-4"><span class="text-xs font-extrabold text-yrc-accent uppercase tracking-widest">Simulcast Library</span><h1 class="font-display text-3xl sm:text-4xl font-black text-white mt-1">Anime</h1><div class="yr43-filter"><input id="yrAnimeSearch" type="search" placeholder="Search anime..." style="flex:1;min-width:150px"><select id="yrAnimeType"><option value="tv">TV Series</option><option value="movie">Anime Movies</option></select><select id="yrAnimeSort"><option value="popularity.desc">Popular</option><option value="vote_average.desc">Top rated</option><option value="NEWEST">Newest</option></select><select id="yrAnimeGenre"><option value="">All genres</option><option value="Action">Action</option><option value="Comedy">Comedy</option><option value="Drama">Drama</option><option value="Romance">Romance</option><option value="Mystery">Mystery</option><option value="Sci-Fi & Fantasy">Sci-Fi & Fantasy</option><option value="Family">Family</option><option value="War">War</option></select></div><div class="yr43-sec">AIRING NOW</div><div id="yrAnimeAiring" class="yr43-rail"></div><div class="yr43-sec">TRENDING</div><div id="yrAnimeTrending" class="yr43-rail"></div><div class="yr43-sec">ALL-TIME TOP</div><div id="yrAnimeTop" class="yr43-rail"></div><div class="yr43-sec">FULL LIBRARY</div><div id="yrAnimeGrid" class="yr43-grid"></div><p class="yr43-note">Data: TMDB · Player: VoidVerse · season, episode and sub/dub are picked inside the player</p></div><div id="yrAnimeModal" class="yr43-modal"><div class="box" id="yrAnimeDetailBox"></div><button id="yrAnimeClose" class="yr43-btn" style="position:fixed;top:16px;right:16px">CLOSE ✕</button></div><div id="yrAnimeWatchModal" class="yr43-modal" style="max-width:none"><div style="width:100%;max-width:1000px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span id="yrWatchTitle" style="font:800 13px 'Plus Jakarta Sans',sans-serif;color:#fff"></span><button id="yrWatchClose" class="yr43-btn">CLOSE ✕</button></div><div style="position:relative;padding-top:56.25%;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#000"><iframe id="yrAnimeFrame" src="about:blank" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; fullscreen; encrypted-media" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div><p class="yr43-note" style="text-align:center;margin:10px 0 0">Season / episode / sub-dub selection is inside the player</p></div></div>
 <!-- VIEW 7: PRIVATE VAULT (18+) -->
   <div id="viewVault" class="app-view hidden px-4 sm:px-6">
     <div id="vaultLockScreen" class="mx-auto max-w-sm rounded-3xl border border-rose-500/20 bg-[#121117] p-6 text-center shadow-2xl">
@@ -3137,7 +3137,7 @@ try{
 @media(min-width:1024px){.yr43-grid{grid-template-columns:repeat(6,1fr)}}
 .yr43-card{cursor:pointer;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#141419;transition:transform .25s,border-color .25s}
 .yr43-card:hover{transform:translateY(-3px);border-color:var(--yrc-accent,#e11d48)}
-.yr43-card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
+.yr43-card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#1a1a22}
 .yr43-card .t{padding:7px 9px;font:700 11px/1.35 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yr43-card .s{padding:0 9px 8px;font:700 9px 'JetBrains Mono',monospace;color:rgba(255,255,255,.45)}
 .yr43-rail{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
@@ -3161,30 +3161,48 @@ try{
 .yr43-note{font:11px/1.6 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.4);margin-top:10px}
 .yr43-empty{padding:30px 10px;text-align:center;color:rgba(255,255,255,.45);font:600 12px 'Plus Jakarta Sans',sans-serif}
 </style>
-<script id="yrcine-v43-anime-js">
+<script id="yrcine-v44-anime-js">
 (function () {
 "use strict";
-if (window.__YR43ANIME) return; window.__YR43ANIME = 1;
+if (window.__YR44ANIME) return; window.__YR44ANIME = 1;
 
-var EP = "https://graphql.anilist.co";
-function al(query, vars) {
-  return fetch(EP, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify({ query: query, variables: vars || {} }) })
-    .then(function (r) { return r.json(); })
-    .then(function (j) { return (j && j.data) || null; });
+/* TMDB - same key infra as the home rails (custom key honored from Studio) */
+var DEF_KEY = "20be784f740b6b638c906dde5b35efae";
+function KEY() { try { return localStorage.getItem("yrc.tmdbkey") || DEF_KEY; } catch (e) { return DEF_KEY; } }
+var B = "https://api.themoviedb.org/3";
+function tm(path, params) {
+  var u = B + path + "?api_key=" + KEY();
+  var ks = Object.keys(params || {});
+  for (var i = 0; i < ks.length; i++) u += "&" + ks[i] + "=" + encodeURIComponent(params[ks[i]]);
+  var ctl = new (window.AbortController || function () { this.signal = null; this.abort = function () {}; })();
+  var t = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, 12000);
+  var done = fetch(u, ctl.signal ? { signal: ctl.signal } : {}).then(function (r) {
+    if (!r.ok) throw new Error("http " + r.status);
+    return r.json();
+  });
+  return done.then(function (j) { clearTimeout(t); return j; }, function (e) { clearTimeout(t); throw e; });
 }
-var FRAG = "media{id title{romaji english} coverImage{large} bannerImage averageScore format status episodes genres seasonYear description(asHtml:false)}";
-var state = { page: 1, q: "", format: "", status: "", sort: "TRENDING_DESC", genre: "", items: [] };
+function isAnimeTV(r) { return r && r.original_language === "ja" && (r.genre_ids || []).indexOf(16) >= 0; }
+function isAnimeMov(r) { return r && r.original_language === "ja" && (r.genre_ids || []).indexOf(16) >= 0; }
+
+var state = { page: 1, q: "", type: "tv", genre: "", sort: "popularity.desc", items: [] };
+var GENRES = [
+  ["Action", 10759, 28], ["Comedy", 35, 35], ["Drama", 18, 18], ["Romance", 10749, 10749],
+  ["Mystery", 9648, 9648], ["Sci-Fi & Fantasy", 10765, 878], ["Family", 10751, 10751], ["War", 10768, 10752]
+];
+function genreId(name) { for (var i = 0; i < GENRES.length; i++) if (GENRES[i][0] === name) return state.type === "tv" ? GENRES[i][1] : GENRES[i][2]; return ""; }
 
 function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) { return { '"': '&amp;', "<": '&lt;', ">": '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-function pct(s) { return s ? (s / 10).toFixed(1) : "–"; }
 
-function card(m) {
-  var title = (m.title && (m.title.english || m.title.romaji)) || "Untitled";
-  var img = (m.coverImage && m.coverImage.large) || "";
-  return '<div class="yr43-card" data-alid="' + m.id + '">' +
+function card(r) {
+  var kind = state.type === "movie" ? "Movie" : "TV";
+  var title = r.name || r.title || "Untitled";
+  var date = r.first_air_date || r.release_date || "";
+  var img = r.poster_path ? "https://image.tmdb.org/t/p/w342" + r.poster_path : "";
+  return '<div class="yr43-card" data-tid="' + r.id + '" data-tkind="' + kind + '">' +
     '<img loading="lazy" src="' + esc(img) + '" alt="' + esc(title) + '">' +
     '<div class="t">' + esc(title) + '</div>' +
-    '<div class="s">' + pct(m.averageScore) + " · " + esc(m.format || "?") + (m.episodes ? " · " + m.episodes + " ep" : "") + "</div></div>";
+    '<div class="s">' + (r.vote_average ? r.vote_average.toFixed(1) : "–") + " · " + kind + (date ? " · " + date.slice(0, 4) : "") + "</div></div>";
 }
 function cards(list, host) {
   var el = document.getElementById(host);
@@ -3194,98 +3212,110 @@ function cards(list, host) {
 }
 
 function rails() {
-  al("query{A:Page(perPage:12){media(type:ANIME,status:RELEASING,sort:POPULARITY_DESC){" + FRAG + "}} B:Page(perPage:12){media(type:ANIME,sort:TRENDING_DESC){" + FRAG + "}} C:Page(perPage:12){media(type:ANIME,sort:SCORE_DESC){" + FRAG + "}}}").then(function (d) {
-    if (!d) return;
-    cards(d.A.media, "yrAnimeAiring");
-    cards(d.B.media, "yrAnimeTrending");
-    cards(d.C.media, "yrAnimeTop");
+  tm("/tv/on_the_air", {}).then(function (d) {
+    var a = (d.results || []).filter(isAnimeTV);
+    if (a.length < 8) { tm("/tv/on_the_air", { page: 2 }).then(function (d2) { cards(a.concat((d2.results || []).filter(isAnimeTV)).slice(0, 12), "yrAnimeAiring"); }).catch(function () { cards(a, "yrAnimeAiring"); }); }
+    else cards(a.slice(0, 12), "yrAnimeAiring");
+  }).catch(function () {});
+  tm("/trending/tv/week", {}).then(function (d) {
+    var a = (d.results || []).filter(isAnimeTV);
+    tm("/trending/tv/week", { page: 2 }).then(function (d2) { cards(a.concat((d2.results || []).filter(isAnimeTV)).slice(0, 12), "yrAnimeTrending"); }).catch(function () { cards(a, "yrAnimeTrending"); });
+  }).catch(function () {});
+  tm("/discover/tv", { with_original_language: "ja", with_genres: "16", sort_by: "vote_average.desc", "vote_count.gte": "300" }).then(function (d) {
+    cards((d.results || []).slice(0, 12), "yrAnimeTop");
   }).catch(function () {});
 }
 
 function applyFilters(reset) {
   if (reset) { state.page = 1; state.items = []; }
-  var v = { page: state.page, perPage: 24, sort: state.sort };
-  if (state.q) v.search = state.q;
-  if (state.format) v.format = state.format;
-  if (state.status) v.status = state.status;
-  if (state.genre) v.genre = state.genre;
   var host = document.getElementById("yrAnimeGrid");
   if (host) host.innerHTML = '<div class="yr43-empty">Loading…</div>';
-  al("query($page:Int,$perPage:Int,$search:String,$format:MediaFormat,$status:MediaStatus,$genre:String,$sort:[MediaSort])" +
-     "{Page(page:$page,perPage:$perPage){media(type:ANIME,search:$search,format:$format,status:$status,genre_in:[$genre],sort:$sort){" + FRAG + "}}}", v)
-    .then(function (d) {
-      var host2 = document.getElementById("yrAnimeGrid");
-      if (!d || !host2) { if (host2) host2.innerHTML = '<div class="yr43-empty">Network slow — check connection</div>'; return; }
-      var list = (d.Page && d.Page.media) || [];
-      state.items = state.items.concat(list);
-      host2.innerHTML = state.items.map(card).join("") + (list.length >= 24 ? '<button id="yrAnimeMore" class="yr43-btn acc" style="grid-column:1/-1">LOAD MORE</button>' : "");
-      var more = document.getElementById("yrAnimeMore");
-      if (more) more.onclick = function () { state.page++; applyFilters(false); };
-    }).catch(function () {
-      var host2 = document.getElementById("yrAnimeGrid");
-      if (host2) host2.innerHTML = '<div class="yr43-empty">Could not reach AniList — retry</div>';
+  var p;
+  if (state.q) {
+    p = tm("/search/" + state.type, { query: state.q, page: state.page }).then(function (d) {
+      var f = (d.results || []).filter(state.type === "tv" ? isAnimeTV : isAnimeMov);
+      return { results: f, total: f.length };
     });
+  } else {
+    var params = { with_original_language: "ja", page: state.page, sort_by: state.sort };
+    if (state.sort === "vote_average.desc") params["vote_count.gte"] = "300";
+    var dateKey = state.type === "tv" ? "first_air_date.desc" : "primary_release_date.desc";
+    if (state.sort === "NEWEST") params.sort_by = dateKey;
+    var g = genreId(state.genre);
+    params.with_genres = g ? "16," + g : "16";
+    p = tm("/discover/" + state.type, params);
+  }
+  p.then(function (d) {
+    var host2 = document.getElementById("yrAnimeGrid");
+    if (!d || !host2) { if (host2) host2.innerHTML = '<div class="yr43-empty">Network slow - check connection</div>'; return; }
+    var list = d.results || [];
+    state.items = state.items.concat(list);
+    host2.innerHTML = state.items.map(card).join("") + (list.length >= 20 ? '<button id="yrAnimeMore" class="yr43-btn acc" style="grid-column:1/-1">LOAD MORE</button>' : (state.items.length ? "" : '<div class="yr43-empty">No results</div>'));
+    var more = document.getElementById("yrAnimeMore");
+    if (more) more.onclick = function () { state.page++; applyFilters(false); };
+  }).catch(function () {
+    var host2 = document.getElementById("yrAnimeGrid");
+    if (host2) host2.innerHTML = '<div class="yr43-empty">Could not reach TMDB - retry</div>';
+  });
 }
 
-/* detail + watch */
+/* detail + watch (VoidVerse - same player family the old YRcine used) */
 var cur = null;
-function openDetail(id) {
-  al("query($id:Int){Media(id:$id){" + FRAG + " studios(isMain:true){nodes{name}} streamingEpisodes{title thumbnail url site}}} ", { id: parseInt(id, 10) }).then(function (d) {
-    if (!d || !d.Media) return;
-    cur = d.Media;
-    var m = d.Media;
-    var title = (m.title && (m.title.english || m.title.romaji)) || "Untitled";
+function openDetail(id, kind) {
+  tm("/" + (kind === "Movie" ? "movie" : "tv") + "/" + id, {}).then(function (m) {
+    if (!m || !m.id) return;
+    cur = m; cur.__kind = kind;
+    var title = m.name || m.title || "Untitled";
+    var date = m.first_air_date || m.release_date || "";
+    var meta = (m.vote_average ? m.vote_average.toFixed(1) : "–") + " · " + kind + (date ? " · " + date.slice(0, 4) : "");
+    if (kind === "TV") meta += " · " + (m.number_of_seasons || "?") + " seasons / " + (m.number_of_episodes || "?") + " eps";
+    else if (m.runtime) meta += " · " + m.runtime + " min";
     var box = document.getElementById("yrAnimeDetailBox");
     box.innerHTML =
       '<div style="display:flex;gap:14px">' +
-        '<img src="' + esc((m.coverImage && m.coverImage.large) || "") + '" style="width:120px;border-radius:12px" alt="">' +
+        '<img src="' + esc(m.poster_path ? "https://image.tmdb.org/t/p/w342" + m.poster_path : "") + '" style="width:120px;border-radius:12px" alt="">' +
         '<div style="flex:1;min-width:0">' +
           '<h3 style="font:800 17px \'Plus Jakarta Sans\',sans-serif;color:#fff;margin:0 0 6px">' + esc(title) + "</h3>" +
-          '<div style="font:700 10px \'JetBrains Mono\',monospace;color:rgba(255,255,255,.5)">' + pct(m.averageScore) + " · " + esc(m.format || "?") + " · " + esc(m.status || "?") + (m.episodes ? " · " + m.episodes + " eps" : "") + (m.seasonYear ? " · " + m.seasonYear : "") + "</div>" +
-          '<div style="margin-top:8px">' + (m.genres || []).map(function (g) { return '<span class="yr43-chip" style="margin:2px 4px 2px 0;display:inline-block">' + esc(g) + "</span>"; }).join("") + "</div>" +
-          (m.studios && m.studios.nodes && m.studios.nodes.length ? '<div style="font:11px sans-serif;color:rgba(255,255,255,.4);margin-top:8px">Studio: ' + esc(m.studios.nodes.map(function (s) { return s.name; }).join(", ")) + "</div>" : "") +
+          '<div style="font:700 10px \'JetBrains Mono\',monospace;color:rgba(255,255,255,.5)">' + meta + "</div>" +
+          '<div style="margin-top:8px">' + (m.genres || []).map(function (g) { return '<span class="yr43-chip" style="margin:2px 4px 2px 0;display:inline-block">' + esc(g.name) + "</span>"; }).join("") + "</div>" +
         "</div></div>" +
-      '<p style="font:12px/1.7 \'Plus Jakarta Sans\',sans-serif;color:rgba(255,255,255,.65);margin:12px 0 0">' + esc((m.description || "No synopsis.").replace(/<[^>]*>/g, "").slice(0, 700)) + "</p>" +
+      '<p style="font:12px/1.7 \'Plus Jakarta Sans\',sans-serif;color:rgba(255,255,255,.65);margin:12px 0 0">' + esc(m.overview || "No synopsis.") + "</p>" +
       '<div style="display:flex;gap:8px;margin-top:14px;align-items:center">' +
         '<button id="yrAnimeWatch" class="yr43-btn acc">▶ WATCH</button>' +
-        '<input id="yrAnimeEp" type="number" min="1" value="1" style="width:74px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px;font:700 12px monospace;outline:none">' +
-        '<span style="font:10px monospace;color:rgba(255,255,255,.4)">EPISODE' + (m.episodes ? " (1-" + m.episodes + ")" : "") + "</span>" +
+        '<span style="font:10px monospace;color:rgba(255,255,255,.4)">VoidVerse player · season/episode & sub/dub inside</span>' +
       "</div>";
     document.getElementById("yrAnimeModal").classList.add("open");
-    document.getElementById("yrAnimeWatch").onclick = function () { watch(id, document.getElementById("yrAnimeEp").value || 1); };
-  });
+    document.getElementById("yrAnimeWatch").onclick = function () { watch(); };
+  }).catch(function () {});
 }
-function watch(id, ep) {
-  var fr = document.getElementById("yrAnimeFrame");
-  fr.src = "https://player.voidverse.me/embed/anime/" + id + "/" + ep + "?autoplay=1";
+function watch() {
+  var kind = cur.__kind === "Movie" ? "movie" : "tv";
+  var url = "https://player.voidverse.me/embed/" + kind + "/" + cur.id + "?autoplay=1";
+  document.getElementById("yrAnimeFrame").src = url;
   document.getElementById("yrAnimeWatchModal").classList.add("open");
-  document.getElementById("yrWatchTitle").textContent = (cur && cur.title && (cur.title.english || cur.title.romaji) || "Anime") + " — Episode " + ep;
-  document.getElementById("yrAnimeEpNow").value = ep;
+  document.getElementById("yrWatchTitle").textContent = (cur.name || cur.title || "Anime") + " — VoidVerse";
 }
+
 function wire() {
   var d = document;
   d.getElementById("yrAnimeSearch").addEventListener("input", function () {
-    state.q = this.value; clearTimeout(window.__yr43s); window.__yr43s = setTimeout(function () { applyFilters(true); }, 500);
+    state.q = this.value; clearTimeout(window.__yr44s); window.__yr44s = setTimeout(function () { applyFilters(true); }, 500);
   });
-  d.getElementById("yrAnimeFormat").onchange = function () { state.format = this.value; applyFilters(true); };
-  d.getElementById("yrAnimeStatus").onchange = function () { state.status = this.value; applyFilters(true); };
+  d.getElementById("yrAnimeType").onchange = function () { state.type = this.value; applyFilters(true); };
   d.getElementById("yrAnimeSort").onchange = function () { state.sort = this.value; applyFilters(true); };
   d.getElementById("yrAnimeGenre").onchange = function () { state.genre = this.value; applyFilters(true); };
   d.getElementById("yrAnimeGrid").addEventListener("click", function (e) {
     var c = e.target.closest ? e.target.closest(".yr43-card") : null;
-    if (c) openDetail(c.getAttribute("data-alid"));
+    if (c) openDetail(c.getAttribute("data-tid"), c.getAttribute("data-tkind"));
   });
   ["yrAnimeAiring", "yrAnimeTrending", "yrAnimeTop"].forEach(function (id) {
     d.getElementById(id).addEventListener("click", function (e) {
       var c = e.target.closest ? e.target.closest(".yr43-card") : null;
-      if (c) openDetail(c.getAttribute("data-alid"));
+      if (c) openDetail(c.getAttribute("data-tid"), c.getAttribute("data-tkind"));
     });
   });
   d.getElementById("yrAnimeClose").onclick = function () { d.getElementById("yrAnimeModal").classList.remove("open"); };
   d.getElementById("yrWatchClose").onclick = function () { d.getElementById("yrAnimeFrame").src = "about:blank"; d.getElementById("yrAnimeWatchModal").classList.remove("open"); };
-  d.getElementById("yrWatchPrev").onclick = function () { var i = document.getElementById("yrAnimeEpNow"); i.value = Math.max(1, parseInt(i.value, 10) - 1); i.onchange(); };
-  d.getElementById("yrWatchNext").onclick = function () { var i = document.getElementById("yrAnimeEpNow"); i.value = parseInt(i.value, 10) + 1; i.onchange(); };
-  d.getElementById("yrAnimeEpNow").onchange = function () { watch(cur && cur.id, parseInt(this.value, 10) || 1); };
   rails();
   applyFilters(true);
 }
@@ -3293,29 +3323,51 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 else wire();
 })();
 </script>
-<script id="yrcine-v43-manga-js">
+<script id="yrcine-v44-manga-js">
 (function () {
 "use strict";
-if (window.__YR43MANGA) return; window.__YR43MANGA = 1;
+if (window.__YR44MANGA) return; window.__YR44MANGA = 1;
 var MP = "https://mangapill.com";
+/* user's own Vercel backend - passes any URL through server-side (no CORS, no referer issues) */
+var VERCEL = "https://voidanime-backend.vercel.app/api/proxy/image?url=";
+var WS = "https://wsrv.nl/?url=";
 
-/* fetch HTML: native bridge first (APK, no CORS), then public proxies (web) */
-function mfetch(url) {
-  if (window.nfetch && window.AndroidFetch) {
-    return window.nfetch(url).then(function (b) { if (b) return b; throw new Error("native empty"); });
-  }
-  var pipes = [
-    "https://corsproxy.io/?url=" + encodeURIComponent(url),
-    "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-    "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url)
-  ];
-  var attempts = pipes.map(function (p) {
-    return fetch(p, { cache: "no-store" }).then(function (r) {
-      if (!r.ok) throw new Error("http " + r.status);
-      return r.text();
-    });
+function viaVercel(url) {
+  return fetch(VERCEL + encodeURIComponent(url), { cache: "no-store" }).then(function (r) {
+    if (!r.ok) throw new Error("http " + r.status);
+    return r.text();
   });
+}
+function viaProxy(u, url) {
+  return fetch(u + encodeURIComponent(url), { cache: "no-store" }).then(function (r) {
+    if (!r.ok) throw new Error("http " + r.status);
+    return r.text();
+  });
+}
+/* HTML fetch: APK native first (zero CORS), then YOUR vercel, then public proxies */
+function mfetch(url) {
+  if (window.AndroidFetch && window.nfetch) {
+    return window.nfetch(url).then(function (b) { if (b) return b; throw new Error("native empty"); })
+      .catch(function () { return viaVercel(url); });
+  }
+  var attempts = [
+    viaVercel(url),
+    viaProxy("https://corsproxy.io/?url=", url),
+    viaProxy("https://api.allorigins.win/raw?url=", url),
+    viaProxy("https://api.codetabs.com/v1/proxy?quest=", url)
+  ];
   return Promise.any ? Promise.any(attempts) : attempts[0];
+}
+/* images through YOUR vercel first, wsrv fallback, then direct */
+function imgFallback(el) {
+  var raw = el.getAttribute("data-raw");
+  if (!raw || el.getAttribute("data-step") === "3") return;
+  var step = el.getAttribute("data-step") || "1";
+  if (step === "1") { el.setAttribute("data-step", "2"); el.src = WS + encodeURIComponent(raw); }
+  else if (step === "2") { el.setAttribute("data-step", "3"); el.src = raw; }
+}
+function imgTag(u, cls) {
+  return '<img loading="lazy" data-raw="' + u + '" data-step="1" src="' + VERCEL + encodeURIComponent(u) + '" class="' + (cls || "") + '" onerror="imgFallback(this)">';
 }
 
 function parseSearch(html) {
@@ -3343,7 +3395,7 @@ function parsePages(html) {
 }
 
 function card(a) {
-  return '<div class="yr43-card" data-href="' + a.href + '"><img loading="lazy" src="' + a.img + '" alt="' + a.title + '"><div class="t">' + a.title + "</div></div>";
+  return '<div class="yr43-card" data-href="' + a.href + '">' + imgTag(a.img) + '<div class="t">' + a.title + "</div></div>";
 }
 
 function searchMP(q) {
@@ -3351,10 +3403,10 @@ function searchMP(q) {
   host.innerHTML = '<div class="yr43-empty">Searching MangaPill…</div>';
   mfetch(MP + "/search?q=" + encodeURIComponent(q)).then(function (html) {
     var list = parseSearch(html);
-    if (!list.length) { host.innerHTML = '<div class="yr43-empty">No results' + (window.AndroidFetch ? "" : " (web mode needs the APK for full reliability)") + "</div>"; return; }
+    if (!list.length) { host.innerHTML = '<div class="yr43-empty">No results</div>'; return; }
     host.innerHTML = list.map(card).join("");
   }).catch(function () {
-    host.innerHTML = '<div class="yr43-empty">Could not reach MangaPill — try again</div>';
+    host.innerHTML = '<div class="yr43-empty">Could not reach MangaPill - try again</div>';
   });
 }
 
@@ -3381,7 +3433,7 @@ function readChapter(href) {
   mfetch(MP + href).then(function (html) {
     var imgs = parsePages(html);
     if (!imgs.length) { pages.innerHTML = '<div class="yr43-empty" style="padding-top:40vh">No pages parsed</div>'; return; }
-    pages.innerHTML = imgs.map(function (u) { return '<img loading="lazy" src="' + u + '">'; }).join("");
+    pages.innerHTML = imgs.map(function (u) { return imgTag(u); }).join("");
     var m = href.match(/chapter-(\d+)/);
     document.getElementById("yrMangaChNum").textContent = m ? "Chapter " + m[1] : "Reading";
     document.getElementById("yrMangaCur").setAttribute("data-href", href);
@@ -3395,7 +3447,7 @@ function stepChapter(dir) {
   if (!m) return;
   var stem = m[1] + "-" + m[2] + "-";
   var num = parseInt(m[3], 10) + dir;
-  var slug = cur.slice(cur.lastIndexOf("/") + 1).replace(/-\d+$/, "");
+  var slug = cur.slice(cur.lastIndexOf("/") + 1).replace(/chapter-\d+$/, "");
   readChapter("/chapters/" + stem + num + "/" + slug.replace(/chapter-\d+$/, "chapter-" + num));
 }
 
@@ -3447,8 +3499,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.3.0";
-try { localStorage.setItem("yrc.ver", "4.3.0"); } catch(e){}
+window.YR_VERSION = "4.4.0";
+try { localStorage.setItem("yrc.ver", "4.4.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -3473,7 +3525,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.3";
+    tag.textContent = "v4.4";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
