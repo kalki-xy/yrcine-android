@@ -188,9 +188,12 @@ public class MainActivity extends BridgeActivity {
                 + "if(d&&d.className.indexOf('-translate-x-full')===-1){"
                 + "if(window.yr5Close){window.yr5Close();}else if(window.closeSlidebar){window.closeSlidebar();}"
                 + "return 'closed';}return 'no';})()",
-                value -> {
-                    if (value == null || value.indexOf("closed") === -1) {
-                        MainActivity.super.onBackPressed();
+                new android.webkit.ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        if (value == null || !value.contains("closed")) {
+                            MainActivity.super.onBackPressed();
+                        }
                     }
                 });
             return;
