@@ -1,0 +1,38 @@
+name: probe30
+on: workflow_dispatch
+jobs:
+  ep4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: render eporner embed in real headless chrome
+        run: |
+          set -x
+          UA="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+          curl -s -A "$UA" "https://www.eporner.com/api/v2/video/search/?query=pov&per_page=2&format=json&order=most-popular&thumbsize=big&lq=0&page=1" -o /tmp/s.json
+          VID=$(python3 -c "import json; print(json.load(open('/tmp/s.json'))['videos'][0]['id'])")
+          echo "VID=$VID"
+          # build a test page that mimics the app: https page + cross-origin iframe
+          cat > /tmp/app.html << HTMLEOF
+          <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+          <body style="margin:0;background:#000;font-family:sans-serif">
+          <div style="position:relative;padding-top:56.25%;background:#000">
+          <iframe id="yrEpFrame" src="https://www.eporner.com/embed/$VID/" style="position:absolute;inset:0;width:100%;height:100%;border:0" allowfullscreen scrolling="no"></iframe>
+          </div>
+          </body></html>
+          HTMLEOF
+          cd /tmp && python3 -m http.server 8099 &
+          sleep 2
+          # headless chrome (desktop build preinstalled on the runner)
+          google-chrome --headless=new --no-sandbox --disable-gpu --window-size=412,915 --screenshot=/tmp/shot.png --virtual-time-budget=20000 --enable-logging=stderr --v=0 "http://127.0.0.1:8099/app.html" 2> /tmp/chrome.log || true
+          ls -la /tmp/shot.png
+          echo "=== chrome log (errors):"
+          grep -i "error\|failed\|blocked\|403" /tmp/chrome.log | head -15 || echo "no errors found"
+          kill %1 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe30-out
+          path: |
+            /tmp/shot.png
+            /tmp/chrome.log
+            /tmp/app.html
