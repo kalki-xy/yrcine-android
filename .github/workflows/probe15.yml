@@ -1,0 +1,32 @@
+name: probe15
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: mangafire + weebcentral via user vercel
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import urllib.request, urllib.parse, json
+          V = "https://voidanime-backend.vercel.app/api/proxy/image?url="
+          def via(target):
+              u = V + urllib.parse.quote(target, safe="")
+              try:
+                  r = urllib.request.urlopen(u, timeout=45)
+                  b = r.read()
+                  return r.status, b
+              except Exception as e:
+                  return None, str(e).encode()
+          for name, url in [
+              ("mf_search", "https://mangafire.to/search?keyword=solo+leveling"),
+              ("mf_series", "https://mangafire.to/manga/solo-leveling.3522"),
+              ("wc_search", "https://weebcentral.com/search?text=solo+leveling"),
+          ]:
+              st, b = via(url)
+              ok = st == 200 and b"cloudflare" not in b.lower() and b"Just a moment" not in b and len(b) > 30000
+              open("out/" + name + ".html", "wb").write(b if st == 200 else b"")
+              print(name, st, len(b) if st else b[:80], "REAL" if ok else "BLOCKED/EMPTY")
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe15, path: out/}
