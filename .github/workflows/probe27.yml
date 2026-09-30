@@ -1,0 +1,32 @@
+name: probe27
+on: workflow_dispatch
+jobs:
+  ep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe eporner playback paths
+        run: |
+          set -x
+          UA="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+          curl -s -A "$UA" "https://www.eporner.com/api/v2/video/search/?query=amateur&per_page=3&format=json&order=latest&thumbsize=big&lq=0&page=1" -o /tmp/search.json
+          python3 -c "import json; d=json.load(open('/tmp/search.json')); vs=d.get('videos',[]); print('count:', d.get('total'), 'returned:', len(vs)); print('id:', vs[0].get('id'), '| title:', vs[0].get('title','')[:40]) if vs else None; print('keys:', sorted(vs[0].keys())) if vs else None"
+          VID=$(python3 -c "import json; d=json.load(open('/tmp/search.json')); print(d['videos'][0]['id'])")
+          curl -s -A "$UA" "https://www.eporner.com/api/v2/video/id/?id=$VID&format=json&thumbsize=big" -o /tmp/vid.json
+          echo "--- video/id full json:"
+          cat /tmp/vid.json
+          echo
+          echo "--- embed headers:"
+          curl -s -D - -o /tmp/embed.html -A "$UA" "https://www.eporner.com/embed/$VID/"
+          echo "--- embed size: $(stat -c%s /tmp/embed.html)"
+          grep -o -i "x-frame-options[^<]*" /tmp/embed.html | head -2 || true
+          grep -o "https://[^\"' ]*\.m3u8[^\"' ]*" /tmp/embed.html | head -3
+          grep -o "https://[^\"' ]*\.mp4[^\"' ]*" /tmp/embed.html | head -3
+          grep -o "loadVideo[^;]*" /tmp/embed.html | head -5
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe27-out
+          path: |
+            /tmp/search.json
+            /tmp/vid.json
+            /tmp/embed.html
