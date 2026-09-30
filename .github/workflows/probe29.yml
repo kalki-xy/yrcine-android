@@ -1,0 +1,20 @@
+name: probe29
+on: workflow_dispatch
+jobs:
+  ep3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: eporner embed-context playback check
+        run: |
+          set -x
+          UA="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+          curl -sL -A "$UA" "https://www.eporner.com/api/v2/video/search/?query=pov&per_page=2&format=json&order=most-popular&thumbsize=big&lq=0&page=1" -o /tmp/s.json
+          VID=$(python3 -c "import json; print(json.load(open('/tmp/s.json'))['videos'][0]['id'])")
+          # fetch embed WITH cookie jar (like a real browser session)
+          curl -s -c /tmp/jar -A "$UA" "https://www.eporner.com/embed/$VID/" -o /tmp/e.html
+          grep -o "data-vid=\"[^\"]*\"" /tmp/e.html | head -2
+          # fetch the mp4 with cookies + referer like the player does
+          echo "=== mp4 WITH cookies+referer:"
+          curl -s -b /tmp/jar -A "$UA" -H "Referer: https://www.eporner.com/embed/$VID/" -r 0-1023 -o /tmp/c.bin -w "HTTP %{http_code} type %{content_type} size %{size_download}\n" "https://gvideo.eporner.com/$VID/$VID.mp4"
+          echo "=== mp4 with referer only, no cookies:"
+          curl -s -A "$UA" -H "Referer: https://www.eporner.com/" -r 0-1023 -o /tmp/c2.bin -w "HTTP %{http_code} type %{content_type} size %{size_download}\n" "https://gvideo.eporner.com/$VID/$VID.mp4"
