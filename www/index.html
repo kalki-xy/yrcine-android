@@ -3454,6 +3454,7 @@ function stepChapter(dir) {
   readChapter("/chapters/" + stem + num + "/" + slug.replace(/chapter-\d+$/, "chapter-" + num));
 }
 
+window.__yrMangaTab = tab;
 function tab(which) {
   ["MD", "MP", "WC", "MF"].forEach(function (t) {
     document.getElementById("yrTab" + t).classList.toggle("on", t === which);
@@ -3536,7 +3537,7 @@ function mdSearch(reset) {
   if (reset) mdState.page = 0;
   var host = document.getElementById("yrMdGrid");
   host.innerHTML = '<div class="yr43-empty">Loading MangaDex…</div>';
-  var p = "/manga?limit=24&order%5BfollowedCount%5D=desc&includes%5B%5D=cover_art&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive";
+  var p = "/manga?limit=24&order%5BfollowedCount%5D=desc&includes%5B%5D=cover_art&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive&contentRating%5B%5D=erotica";
   if (mdState.lang) p += "&originalLanguage%5B%5D=" + mdState.lang;
   if (mdState.q) p += "&title=" + encodeURIComponent(mdState.q);
   mdGet(p).then(function (d) {
@@ -3555,16 +3556,43 @@ function mdChapters(id) {
   list.innerHTML = '<div class="yr43-empty">Loading chapters…</div>';
   modal.classList.add("open");
   mdGet("/manga/" + id + "/feed?order%5Bchapter%5D=desc&limit=500&translatedLanguage%5B%5D=en").then(function (d) {
-    var chs = (d.data || []).filter(function (c) {
+    var all = d.data || [];
+    var chs = all.filter(function (c) {
       var a = c.attributes || {};
       return a.chapter && !a.externalUrl;
     }).map(function (c) {
       return { id: c.id, num: parseFloat(c.attributes.chapter) || 0, title: c.attributes.title || "", pages: c.attributes.pages || 0 };
     }).sort(function (a, b) { return b.num - a.num; });
-    if (!chs.length) { list.innerHTML = '<div class="yr43-empty">No English chapters</div>'; return; }
-    list.innerHTML = chs.map(function (c) {
+    var ext = all.filter(function (c) {
+      var a = c.attributes || {};
+      return a.chapter && a.externalUrl;
+    }).map(function (c) {
+      return { url: c.attributes.externalUrl, num: parseFloat(c.attributes.chapter) || 0 };
+    }).sort(function (a, b) { return b.num - a.num; });
+    if (!chs.length && !ext.length) {
+      list.innerHTML = '<div class="yr43-empty">No English chapters on MangaDex</div>';
+      return;
+    }
+    var html = "";
+    if (!chs.length) {
+      html += '<div class="yr43-note" style="padding:10px 12px">Licensed title - MangaDex keeps official links only. Read it in-app via the MangaFire tab:</div>';
+      html += '<button id="yrMdMFBtn" class="yr43-btn acc" style="margin:10px 12px">READ ON MANGAFIRE ▸</button>';
+    }
+    html += chs.map(function (c) {
       return '<div class="yr43-chap" data-mdch="' + c.id + '"><span>Ch ' + c.num + (c.title ? " — " + c.title.replace(/</g, "&lt;").slice(0, 40) : "") + (c.pages ? " · " + c.pages + "p" : "") + '</span><span>READ ▸</span></div>';
     }).join("");
+    html += ext.map(function (c) {
+      return '<div class="yr43-chap" data-ext="' + c.url + '"><span>Ch ' + c.num + ' — official</span><span>OPEN ↗</span></div>';
+    }).join("");
+    list.innerHTML = html;
+    var mf = document.getElementById("yrMdMFBtn");
+    if (mf) mf.onclick = function () {
+      document.getElementById("yrMangaChapModal").classList.remove("open");
+      if (window.__yrMangaTab) window.__yrMangaTab("MF");
+      var f = document.getElementById("yrPaneMF").querySelector("iframe");
+      if (f) f.src = "https://mangafire.to/search?keyword=" + encodeURIComponent(window.__yrMdTitle || "");
+      document.getElementById("yrPaneMF").scrollIntoView({ behavior: "smooth" });
+    };
   }).catch(function () { list.innerHTML = '<div class="yr43-empty">Could not load chapters</div>'; });
 }
 function mdRead(chId) {
@@ -3595,13 +3623,18 @@ function wire() {
   });
   d.getElementById("yrMdGrid").addEventListener("click", function (e) {
     var c = e.target.closest ? e.target.closest(".yr43-card") : null;
-    if (c && c.getAttribute("data-md")) mdChapters(c.getAttribute("data-md"));
+    if (c && c.getAttribute("data-md")) {
+      window.__yrMdTitle = c.querySelector(".t") ? c.querySelector(".t").textContent : "";
+      mdChapters(c.getAttribute("data-md"));
+    }
   });
   d.getElementById("yrMangaChapList").addEventListener("click", function (e) {
     var c = e.target.closest ? e.target.closest(".yr43-chap") : null;
     if (c && c.getAttribute("data-mdch")) {
       d.getElementById("yrMangaChapModal").classList.remove("open");
       mdRead(c.getAttribute("data-mdch"));
+    } else if (c && c.getAttribute("data-ext")) {
+      window.open(c.getAttribute("data-ext"), "_blank");
     }
   });
   mdSearch(true);
@@ -3763,8 +3796,8 @@ else wire();
 (function(){
 "use strict";
 if (window.__YR4ENGINE) return; window.__YR4ENGINE = 1;
-window.YR_VERSION = "4.5.0";
-try { localStorage.setItem("yrc.ver", "4.5.0"); } catch(e){}
+window.YR_VERSION = "4.6.0";
+try { localStorage.setItem("yrc.ver", "4.6.0"); } catch(e){}
 
 /* ---------- native-first TMDB fetch (APK: AndroidFetch bridge beats CORS proxies) ---------- */
 if (window.nfetch) {
@@ -3789,7 +3822,7 @@ function chip(){
     if (document.getElementById("yrVerChip")) return;
     var tag = document.createElement("span");
     tag.id = "yrVerChip";
-    tag.textContent = "v4.5";
+    tag.textContent = "v4.6";
     tag.style.cssText = "display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);font:700 9px/1.4 'JetBrains Mono',monospace;color:rgba(255,255,255,.8);letter-spacing:.5px;vertical-align:middle";
     var close = document.getElementById("closeSlidebarBtn");
     if (close && close.parentElement) close.parentElement.appendChild(tag);
