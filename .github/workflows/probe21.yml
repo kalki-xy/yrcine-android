@@ -1,0 +1,55 @@
+name: probe21
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: manhwatop series + chapter structure
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import urllib.request, re, json
+          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"}
+          def get(url, timeout=25, referer=None):
+              h = dict(UA)
+              if referer: h["Referer"] = referer
+              req = urllib.request.Request(url, headers=h)
+              r = urllib.request.urlopen(req, timeout=timeout)
+              return r.status, r.read()
+          # 1) series page
+          st, b = get("https://manhwatop.com/manga/solo-leveling-arise/")
+          open("out/mt_series.html", "wb").write(b)
+          s = b.decode("utf-8", "ignore")
+          chs = re.findall(r'href="(https://manhwatop\.com/manga/solo-leveling-arise/chapter-[^"]+)"', s)
+          print("series:", st, len(b), "| chapter links in page:", len(set(chs)), "| sample:", sorted(set(chs))[-1] if chs else None)
+          # ajax all chapters?
+          try:
+              st2, b2 = get("https://manhwatop.com/wp-admin/admin-ajax.php?action=manga_get_chapters&manga=1")
+              print("ajax:", st2, len(b2))
+          except Exception as e:
+              print("ajax ERR", str(e)[:80])
+          # 2) chapter page images
+          if chs:
+              curl = sorted(set(chs))[-1]
+              st3, b3 = get(curl, referer="https://manhwatop.com/manga/solo-leveling-arise/")
+              open("out/mt_chapter.html", "wb").write(b3)
+              c = b3.decode("utf-8", "ignore")
+              imgs = re.findall(r'<img[^>]+(?:data-src|src)="(https?://[^"]+)"[^>]*class="[^"]*wp-manga-chapter-img', c)
+              print("chapter:", st3, len(b3), "| images:", len(imgs), "| sample:", imgs[:2])
+              # 3) hotlink test WITHOUT referer
+              if imgs:
+                  try:
+                      st4, b4 = get(imgs[0])
+                      print("hotlink no-referer:", st4, len(b4))
+                  except Exception as e:
+                      print("hotlink ERR:", str(e)[:80])
+          # 4) does the site have the ORIGINAL Solo Leveling? try slug guess
+          for slug in ["solo-leveling", "solo-leveling-manhwa", "leveling-up-by-only-eating"]:
+              try:
+                  stx, bx = get("https://manhwatop.com/manga/%s/" % slug)
+                  print("slug", slug, "->", stx, len(bx))
+              except Exception as e:
+                  print("slug", slug, "->", str(e)[:60])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe21, path: out/}
