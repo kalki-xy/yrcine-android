@@ -1,0 +1,44 @@
+name: probe24
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: mangabuddy series + chapter next-data
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import urllib.request, re, json
+          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"}
+          def get(url):
+              req = urllib.request.Request(url, headers=UA)
+              r = urllib.request.urlopen(req, timeout=30)
+              return r.status, r.read()
+          def nextdata(b):
+              m = re.search(rb'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', b, re.S)
+              return json.loads(m.group(1)) if m else None
+          # series
+          st, b = get("https://mangabuddy.com/solo-leveling")
+          open("out/mb_series.html", "wb").write(b)
+          d = nextdata(b)
+          pp = d["props"]["pageProps"]
+          print("series keys:", sorted(pp.keys())[:14])
+          for k in pp:
+              v = pp[k]
+              if isinstance(v, list) and v and isinstance(v[0], dict) and ("url" in v[0] or "name" in v[0]):
+                  print(" list:", k, len(v), str(v[0])[:140])
+          # chapter
+          st2, b2 = get("https://mangabuddy.com/solo-leveling/chapter-202")
+          open("out/mb_chapter.html", "wb").write(b2)
+          d2 = nextdata(b2)
+          pp2 = d2["props"]["pageProps"]
+          print("chapter keys:", sorted(pp2.keys())[:14])
+          for k in pp2:
+              v = pp2[k]
+              if isinstance(v, list) and v and isinstance(v[0], (str, dict)):
+                  print(" list:", k, len(v), str(v[0])[:160])
+              elif isinstance(v, dict):
+                  print(" dict:", k, str(v)[:200])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe24, path: out/}
