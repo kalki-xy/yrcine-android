@@ -1,0 +1,15 @@
+name: probe11
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: vercel vs cloudflare sites
+        run: |
+          mkdir -p out
+          V="https://voidanime-backend.vercel.app/api/proxy/image?url="
+          curl -sL --max-time 25 -o out/wc_via_vercel.html -w "wc %{http_code} %{size_download}\n" "$V$(python3 -c \"import urllib.parse;print(urllib.parse.quote('https://weebcentral.com/search?text=one+piece',safe=''))\")"
+          curl -sL --max-time 25 -o out/mf_via_vercel.html -w "mf %{http_code} %{size_download}\n" "$V$(python3 -c \"import urllib.parse;print(urllib.parse.quote('https://mangafire.to/search?keyword=one+piece',safe=''))\")"
+          head -c 200 out/wc_via_vercel.html; echo
+      - uses: actions/upload-artifact@v4
+        with: {name: probe11, path: out/}
