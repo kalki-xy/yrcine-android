@@ -1,0 +1,14 @@
+name: probe9
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: chapter page shape
+        run: |
+          mkdir -p out
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36"
+          curl -sL --max-time 25 -A "$UA" "https://mangapill.com/chapters/2-11194000/one-piece-chapter-1194" -o out/mp_chapter.html
+          wc -c out/mp_chapter.html
+      - uses: actions/upload-artifact@v4
+        with: {name: probe9, path: out/}
