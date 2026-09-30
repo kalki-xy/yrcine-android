@@ -1,0 +1,37 @@
+name: seed
+on: workflow_dispatch
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harvest TMDB seed
+        run: |
+          KEY=db55323b8d3e4154498a75642b381
+          for EP in "trending" "popular_mov" "popular_tv" "top_rated" "now_playing"; do
+            case $EP in
+              trending) URL="https://api.themoviedb.org/3/trending/all/day?api_key=$KEY&region=IN";;
+              popular_mov) URL="https://api.themoviedb.org/3/movie/popular?api_key=$KEY&region=IN&page=1";;
+              popular_tv) URL="https://api.themoviedb.org/3/tv/popular?api_key=$KEY&region=IN&page=1";;
+              top_rated) URL="https://api.themoviedb.org/3/movie/top_rated?api_key=$KEY&region=IN&page=1";;
+              now_playing) URL="https://api.themoviedb.org/3/movie/now_playing?api_key=$KEY&region=IN&page=1";;
+            esac
+            for i in 1 2 3; do curl -s --max-time 25 "$URL" -o "$EP.json" && [ -s "$EP.json" ] && break; sleep 3; done
+          done
+          python3 - << 'PY'
+          import json, glob
+          keep = ["id","title","name","media_type","release_date","first_air_date","backdrop_path","poster_path","vote_average"]
+          out = {}
+          for f in glob.glob("*.json"):
+            try:
+              d = json.load(open(f))
+              rs = []
+              for r in (d.get("results") or [])[:20]:
+                rs.append({k: r[k] for k in keep if k in r})
+              out[f.replace(".json","")] = rs
+            except Exception as e:
+              print("bad", f, e)
+          json.dump(out, open("seed.json","w"), separators=(",",":"))
+          print("seed size", len(json.dumps(out)))
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: seed, path: seed.json}
