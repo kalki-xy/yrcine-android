@@ -1,0 +1,43 @@
+name: probe14
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: manhwa feed diagnosis
+        run: |
+          mkdir -p out
+          python3 - << 'PY'
+          import json, urllib.request, urllib.parse
+          def get(u):
+              r = urllib.request.urlopen(u, timeout=30)
+              return json.load(r)
+          # 1) manhwa list (my exact query, ko)
+          lst = get("https://api.mangadex.org/manga?limit=5&order%5BfollowedCount%5D=desc&includes%5B%5D=cover_art&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive&originalLanguage%5B%5D=ko")
+          print("ko list:", [ (m["id"], list(m["attributes"]["title"].values())[0][:30], m["attributes"]["contentRating"]) for m in lst["data"][:5] ])
+          # 2) feed for first TWO manhwa with my exact params
+          for m in lst["data"][:2]:
+              try:
+                  feed = get("https://api.mangadex.org/manga/%s/feed?order%%5Bchapter%%5D=desc&limit=500&translatedLanguage%%5B%%5D=en" % m["id"])
+                  chs = feed["data"]
+                  real = [c for c in chs if c["attributes"].get("chapter") and not c["attributes"].get("externalUrl")]
+                  print(m["id"], list(m["attributes"]["title"].values())[0][:25], "| raw:", len(chs), "| parseable:", len(real), "| sample ch:", real[0]["attributes"]["chapter"] if real else None, "| pages:", real[0]["attributes"]["pages"] if real else None)
+              except Exception as e:
+                  print(m["id"], "FEED ERR", e)
+          # 3) same via vercel proxy (double-encoded, like the app fallback)
+          V = "https://voidanime-backend.vercel.app/api/proxy/image?url="
+          u = "https://api.mangadex.org/manga/" + lst["data"][0]["id"] + "/feed?order%5Bchapter%5D=desc&limit=500&translatedLanguage%5B%5D=en"
+          try:
+              r = urllib.request.urlopen(V + urllib.parse.quote(u, safe=""), timeout=40)
+              b = r.read()
+              j = json.loads(b)
+              real = [c for c in j["data"] if c["attributes"].get("chapter") and not c["attributes"].get("externalUrl")]
+              print("vercel feed:", r.status, len(b), "| parseable:", len(real))
+          except Exception as e:
+              print("vercel feed ERR", e)
+          # 4) what contentRating do popular manhwa have (any rating)?
+          lst2 = get("https://api.mangadex.org/manga?limit=8&order%5BfollowedCount%5D=desc&originalLanguage%5B%5D=ko")
+          print("ko any-rating:", [ (list(m["attributes"]["title"].values())[0][:25], m["attributes"]["contentRating"]) for m in lst2["data"] ])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: probe14, path: out/}
