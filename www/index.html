@@ -43,10 +43,7 @@ window.YRCINE_CONFIG = {
 
   /* Public CORS proxies — used only when the relay is not available. */
   publicProxies: [
-    "/api/proxy?url=",
-    "https://corsproxy.io/?url=",
-    "https://api.allorigins.win/raw?url=",
-    "https://api.codetabs.com/v1/proxy?quest="
+    "/api/proxy?url="
   ],
 
   /* How long a direct request may take before we fall back (ms). Slow
@@ -165,10 +162,7 @@ window.YRCINE_CONFIG = {
 
   // Public CORS proxies, used only when your own relay is NOT present.
   var PUBLIC = CFG.publicProxies || [
-    "/api/proxy?url=",
-    "https://corsproxy.io/?url=",
-    "https://api.allorigins.win/raw?url=",
-    "https://api.codetabs.com/v1/proxy?quest="
+    "/api/proxy?url="
   ];
 
   var PROXY_READY = null; // null = probing, true = relay present, false = static
@@ -4972,9 +4966,9 @@ function mfetch(url) {
   }
   var attempts = [
     viaVercel(url),
-    viaProxy("https://corsproxy.io/?url=", url),
-    viaProxy("https://api.allorigins.win/raw?url=", url),
-    viaProxy("https://api.codetabs.com/v1/proxy?quest=", url)
+    viaProxy("/api/proxy?url=", url),
+    viaProxy("/api/proxy?url=", url),
+    viaProxy("/api/proxy?url=", url)
   ];
   return Promise.any ? Promise.any(attempts) : attempts[0];
 }
@@ -7899,9 +7893,9 @@ body[data-navpos="left"] #dynamicIsland, body[data-navpos="right"] #dynamicIslan
     var attempts = [
       function(){ return jget(epApi); },
       function(){ return jget(epApi2); },
-      function(){ return jget("https://corsproxy.io/?url=" + encodeURIComponent(epApi)); },
-      function(){ return jget("https://api.allorigins.win/raw?url=" + encodeURIComponent(epApi)); },
-      function(){ return jget("https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(epApi)); },
+      function(){ return jget("/api/proxy?url=" + encodeURIComponent(epApi)); },
+      function(){ return jget("/api/proxy?url=" + encodeURIComponent(epApi)); },
+      function(){ return jget("/api/proxy?url=" + encodeURIComponent(epApi)); },
       // relay may 401 — still try
       function(){ return jget(proxy + encodeURIComponent(epApi)); }
     ];
@@ -8092,8 +8086,8 @@ body:has(#viewVault:not(.hidden)) footer,
     }).catch(function(){
       // public proxies
       var proxied = [
-        "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-        "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url)
+        "/api/proxy?url=" + encodeURIComponent(url),
+        "/api/proxy?url=" + encodeURIComponent(url)
       ];
       return (function next(i){
         if (i >= proxied.length) return Promise.reject(new Error("all failed"));
