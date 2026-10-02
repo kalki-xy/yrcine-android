@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "cloudflare/**"
+      - "www/**"
+      - "wrangler.toml"
       - ".github/workflows/deploy-edge-worker.yml"
   workflow_dispatch:
 
@@ -16,10 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy Cloudflare Worker
+      - name: Deploy Cloudflare Worker (app + API)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: cloudflare
           command: deploy
