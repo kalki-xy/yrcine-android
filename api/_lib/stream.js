@@ -794,6 +794,76 @@ async function hianimeStream(slug, ep, env) {
   throw new Error("hianime: no playable server");
 }
 
+
+/* =======================================================================
+ * MANGA SOURCES — manhwa/manga readers
+ * ======================================================================= */
+
+/* --- Asura Scans (manhwa) — clean JSON API, no scraping --------------- */
+const ASURA_API_DEFAULT = "https://api.asurascans.com/api";
+const ASURA_API = (env) => (env && env.ASURA_API ? String(env.ASURA_API).replace(/\/+$/, "") : ASURA_API_DEFAULT);
+
+async function asuraSearch(query, env) {
+  const j = await (await get(`${ASURA_API(env)}/series?search=${encodeURIComponent(query)}`)).json().catch(() => ({}));
+  return (j.data || []).map((x) => ({
+    id: x.slug, slug: x.slug, title: x.title || "", cover: x.cover || "", image: x.cover || "",
+    status: x.status || "", type: x.type || "", provider: "asura",
+  }));
+}
+async function asuraChapters(slug, env) {
+  const j = await (await get(`${ASURA_API(env)}/series/${encodeURIComponent(slug)}/chapters`)).json().catch(() => ({}));
+  return (j.data || []).map((c) => ({
+    id: `${slug}|${c.id}`, chapter: String(c.number), title: c.title || "", pages: c.page_count || 0,
+  }));
+}
+async function asuraPages(id, opts, env) {
+  const [slug, uuid] = String(id).split("|");
+  const j = await (await get(`${ASURA_API(env)}/series/${encodeURIComponent(slug)}/chapters/${encodeURIComponent(uuid)}`)).json().catch(() => ({}));
+  const pages = ((((j.data || {}).chapter) || {}).pages) || [];
+  return { pages: pages.map((x) => x.url).filter(Boolean) };
+}
+
+/* --- MangaPill (manga) — regexes lifted from the app's working code --- */
+const MANGAPILL_DEFAULT = "https://mangapill.com";
+const MANGAPILL = (env) => (env && env.MANGAPILL_BASE ? String(env.MANGAPILL_BASE).replace(/\/+$/, "") : MANGAPILL_DEFAULT);
+const mpUrl = (base, id) => (/^https?:/i.test(id) ? id : base + (String(id).startsWith("/") ? id : "/" + id));
+
+async function mangapillSearch(query, env) {
+  const base = MANGAPILL(env);
+  const html = await (await get(`${base}/search?q=${encodeURIComponent(query)}`, { Referer: base + "/" })).text();
+  const out = [], seen = new Set();
+  const re = /<a href="(\/manga\/[^"]+)"[^>]*>\s*<figure[^>]*>\s*<img data-src="([^"]+)"[^>]*alt="([^"]*)"/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    if (seen.has(m[1])) continue;
+    seen.add(m[1]);
+    out.push({ id: m[1], slug: m[1], title: (m[3] || "").trim(), cover: m[2], image: m[2], provider: "mangapill" });
+  }
+  return out;
+}
+async function mangapillChapters(id, env) {
+  const base = MANGAPILL(env);
+  const html = await (await get(mpUrl(base, id), { Referer: base + "/" })).text();
+  const out = [], seen = new Set();
+  const re = /href="(\/chapters\/[^"]+)"[^>]*>\s*([^<]{0,40}?)\s*Chapter\s*(\d+)/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    if (seen.has(m[1])) continue;
+    seen.add(m[1]);
+    out.push({ id: m[1], chapter: m[3], title: (m[2] || "").trim() });
+  }
+  return out;
+}
+async function mangapillPages(id, opts, env) {
+  const base = MANGAPILL(env);
+  const html = await (await get(mpUrl(base, id), { Referer: base + "/" })).text();
+  const out = [];
+  const re = /<img[^>]*data-src="(https:\/\/cdn[^"]+)"/gi;
+  let m;
+  while ((m = re.exec(html))) out.push(m[1]);
+  return { pages: out };
+}
+
 /* =======================================================================
  * SOURCE REGISTRY  —  Aniyomi-style extensions
  * -----------------------------------------------------------------------
@@ -862,6 +932,20 @@ export const SOURCES = [
     capabilities: ["search", "stream"],
     search: (q, env) => flixhqSearchAt("https://sflix.to", q),
     stream: async (id, ep, env) => (await flixhqServersAt("https://sflix.to", id)).map((x) => ({ server: x.server, type: "embed", url: x.embed })),
+  },
+  {
+    id: "asura", name: "Asura Scans", type: "manga", lang: "en",
+    capabilities: ["search", "chapters", "pages"],
+    search: (q, env) => asuraSearch(q, env),
+    chapters: (id, env) => asuraChapters(id, env),
+    pages: (id, opts, env) => asuraPages(id, opts, env),
+  },
+  {
+    id: "mangapill", name: "MangaPill", type: "manga", lang: "en",
+    capabilities: ["search", "chapters", "pages"],
+    search: (q, env) => mangapillSearch(q, env),
+    chapters: (id, env) => mangapillChapters(id, env),
+    pages: (id, opts, env) => mangapillPages(id, opts, env),
   },
   {
     id: "mangadex", name: "MangaDex", type: "manga", lang: "multi",
