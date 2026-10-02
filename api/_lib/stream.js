@@ -747,15 +747,5 @@ async function route(req, env) {
   return json({ error: "not found" }, 404);
 }
 
-/* ---- Vercel Edge entry ------------------------------------------------- */
-/* Save as  api/stream/[...slug].js  in your Vercel project. */
-export const config = { runtime: "edge" };
 
-export default async function handler(req) {
-  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-  try {
-    return await route(req, process.env || {});
-  } catch (err) {
-    return json({ error: String(err && err.message ? err.message : err) }, 502);
-  }
-}
+export { route as streamRoute };
