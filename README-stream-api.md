@@ -85,9 +85,11 @@ players that refuse to be embedded become embeddable.
 3. Deploy. Check `/api/stream/health`.
 
 ## Wire it into YRcine
+Nothing to set. The same Worker serves the app and the API, so the app calls the
+API on **its own origin** by default (`streamApiBase: ""`). Only set it if the API
+lives on a different host:
 ```js
-streamApiBase: "https://<your-worker>.workers.dev",
-// or "https://<project>.vercel.app/api/stream"
+streamApiBase: "https://<your-api-host>",   // no trailing slash
 ```
 
 ## How the pieces work

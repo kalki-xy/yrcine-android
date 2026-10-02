@@ -81,12 +81,13 @@ window.YRCINE_CONFIG = {
    * edge — faster, and it bypasses ISP/geo blocks. Leave "" to keep Vercel. */
   edgeBase: "",
 
-  /* --- YRcine Stream API (your own backend) ----------------------------
-   * Deploy stream-api-worker.js to Cloudflare (or vercel-stream-api.js to Vercel)
-   * and paste ITS url here, no trailing slash. Providers: anikoto (HLS),
-   * vidsrc (HLS by TMDB id), animesalt (embeds). Its /embed endpoint also
-   * ad-blocks third-party players, so embedded sources get scrubbed too. */
-  streamApiBase: "https://YOUR-STREAM-API.workers.dev"
+  /* --- YRcine Stream API ------------------------------------------------
+   * The SAME Worker serves this app AND the API, so by default the app calls
+   * the API on its OWN ORIGIN — leave this "" and it just works. Only set it
+   * if the API lives on a different host, e.g. "https://my-api.workers.dev"
+   * (no trailing slash). Providers: anikoto (HLS), vidsrc (HLS by TMDB id),
+   * animesalt (embeds); its /embed also ad-blocks third-party players. */
+  streamApiBase: ""
 };
 
 /* If edgeBase is set, derive every relay route from it BEFORE the net shim runs. */
@@ -112,7 +113,8 @@ window.YRCINE_CONFIG = {
     var e = String(c.edgeBase || "").replace(/\/+$/, "");
     var s = String(c.streamApiBase || "").replace(/\/+$/, "");
     if (e && (!s || /YOUR-STREAM-API|mdtahseen7378/.test(s))) { s = e; c.streamApiBase = e; }
-    if (s && !c.adBlockBase) c.adBlockBase = s + "/embed?url=";
+    /* no host set anywhere -> call the API on this page's own origin */
+    if (!c.adBlockBase) c.adBlockBase = s ? s + "/embed?url=" : "/embed?url=";
   } catch (err) {}
 })(window.YRCINE_CONFIG);
 </script>
