@@ -120,7 +120,21 @@ async function tmdb(env, sub, qs) {
   });
 }
 
-async function anilist() {
+async function anilist(request) {
+  /* The app POSTs real GraphQL (search, detail, airing, top). Forward it verbatim —
+     previously this returned a hardcoded trending query, which broke every rail. */
+  if (request && request.method === "POST") {
+    const body = await request.text();
+    const up = await fetchT("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "content-type": "application/json", Accept: "application/json" },
+      body,
+    }, 12000, 1);
+    return new Response(await up.text(), {
+      status: up.status,
+      headers: hdrs({ "content-type": "application/json; charset=utf-8" }),
+    });
+  }
   const q = { query: "query{Page(page:1,perPage:30){media(type:ANIME,sort:TRENDING_DESC){id title{romaji english} coverImage{large} format episodes averageScore}}}" };
   const cached = cacheGet("anilist:trending");
   if (cached) return new Response(cached, { headers: hdrs({ "content-type": "application/json; charset=utf-8", "x-yrcine-cache": "hit" }) });
@@ -193,7 +207,7 @@ export async function relay(request, env) {
     if (p === "/api/tmdb" || p.startsWith("/api/tmdb/")) return await tmdb(env, p.replace(/^\/api\/tmdb/, ""), u.search);
     if (p === "/api/catalog") {
       const src = (u.searchParams.get("source") || "tmdb").toLowerCase();
-      if (src === "anilist") return await anilist();
+      if (src === "anilist") return await anilist(request);
       return await tmdb(env, u.searchParams.get("path") || "/trending/all/day", "");
     }
     if (p === "/api/proxy") return await proxy(request, u);

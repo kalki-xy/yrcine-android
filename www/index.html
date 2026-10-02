@@ -43,6 +43,7 @@ window.YRCINE_CONFIG = {
 
   /* Public CORS proxies — used only when the relay is not available. */
   publicProxies: [
+    "/api/proxy?url=",
     "https://corsproxy.io/?url=",
     "https://api.allorigins.win/raw?url=",
     "https://api.codetabs.com/v1/proxy?quest="
@@ -164,6 +165,7 @@ window.YRCINE_CONFIG = {
 
   // Public CORS proxies, used only when your own relay is NOT present.
   var PUBLIC = CFG.publicProxies || [
+    "/api/proxy?url=",
     "https://corsproxy.io/?url=",
     "https://api.allorigins.win/raw?url=",
     "https://api.codetabs.com/v1/proxy?quest="
@@ -4947,7 +4949,7 @@ try{
 if (window.__YR44MANGA) return; window.__YR44MANGA = 1;
 var MP = "https://mangapill.com";
 /* user's own Vercel backend - passes any URL through server-side (no CORS, no referer issues) */
-var VERCEL = "https://v0-yrcine.vercel.app/api/proxy/image?url=";
+var VERCEL = "/api/proxy?url=";
 var WS = "https://wsrv.nl/?url=";
 
 function viaVercel(url) {
@@ -5126,7 +5128,7 @@ else wire();
 "use strict";
 if (window.__YR45EP) return; window.__YR45EP = 1;
 var EPI = "https://www.eporner.com/api/v2/video/search/";
-var VERCEL = "https://v0-yrcine.vercel.app/api/proxy/image?url=";
+var VERCEL = "/api/proxy?url=";
 var CATS = ["all", "amateur", "asian", "japanese", "indian", "milf", "teen", "latina", "ebony", "pov", "lesbian", "hd"];
 var state = { q: "all", order: "latest", page: 1, items: [], catsOn: false };
 function epFetch(url) {
@@ -5488,7 +5490,7 @@ window.YRGamesVault = function(){
           var cfgImg = (window.YRCINE_CONFIG || {});
           var imgProxy = cfgImg.proxyBase
             ? cfgImg.proxyBase.replace('proxy?url=', 'proxy/image?url=')
-            : ((cfgImg.relayBase || 'https://v0-yrcine.vercel.app').replace(/\/$/,'') + '/api/proxy/image?url=');
+            : '/api/image?url=';
           var raw1 = g.id ? ('https://content-cdn.adultgames.games/images/games/' + g.id + '.jpg?width=480') : '';
           var raw2 = g.id ? ('https://content-cdn.adultgames.games/images/games/' + g.id + '.jpg') : '';
           var thumb = raw1 ? (imgProxy + encodeURIComponent(raw1)) : '';
@@ -9332,4 +9334,34 @@ body.yr-player-open #dynamicIslandContainer{
   window.__yr94 = { play: play, seeds: seeds, score: score, tryAnikoto: tryAnikoto, tryVidsrc: tryVidsrc, api: api, blocked: blocked };
 })();
 </script>
+
+<script id="yrcine-v95-fetch-proxy">
+(function () {
+  "use strict";
+  if (window.__YR95) return; window.__YR95 = 1;
+  var NATIVE = window.fetch.bind(window);
+  /* hosts that send no CORS headers (or are ISP-blocked) — route via our own /api/proxy */
+  var HOSTS = ["jiosaavn.com", "saavn.dev", "mangapill.com", "mangabuddy.com",
+               "manganato.com", "mangataro.org", "mangafire.to", "comick.io",
+               "asuracomic.net", "toonily.com", "hianime.to", "hianime.vc"];
+  function blocked(url) {
+    try {
+      var h = new URL(url, location.href).hostname;
+      return HOSTS.some(function (d) { return h === d || h.slice(-(d.length + 1)) === "." + d; });
+    } catch (e) { return false; }
+  }
+  window.fetch = function (input, init) {
+    try {
+      var url = typeof input === "string" ? input : (input && input.url);
+      if (url && /^https?:/i.test(url) && blocked(url) && url.indexOf("/api/proxy?") === -1) {
+        var proxied = "/api/proxy?url=" + encodeURIComponent(url);
+        return typeof input === "string" ? NATIVE(proxied, init) : NATIVE(new Request(proxied, input), init);
+      }
+    } catch (e) {}
+    return NATIVE(input, init);
+  };
+  window.__yr95 = { blocked: blocked, hosts: HOSTS };
+})();
+</script>
+
 </html>
