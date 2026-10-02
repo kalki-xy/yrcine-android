@@ -1,13 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "echo \"no install needed\"",
-  "buildCommand": "mkdir -p public && cp -r www/. public/",
-  "outputDirectory": "public",
-  "rewrites": [
-    { "source": "/anime/:path*", "destination": "/api/stream/anime/:path*" },
-    { "source": "/movie/:path*", "destination": "/api/stream/movie/:path*" },
-    { "source": "/manga/:path*", "destination": "/api/stream/manga/:path*" },
-    { "source": "/embed",        "destination": "/api/stream/embed" },
-    { "source": "/media/:path*", "destination": "/api/stream/media/:path*" }
-  ]
+  "outputDirectory": "www"
 }

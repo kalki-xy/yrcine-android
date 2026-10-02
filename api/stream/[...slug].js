@@ -426,7 +426,7 @@ async function animeProxy(req) {
   let hdrs = {};
   if (ref) { try { hdrs = { Referer: ref, Origin: new URL(ref).origin }; } catch (_) {} }
   const q = ref ? `&ref=${encodeURIComponent(ref)}` : "";
-  return proxyUrl(req, target, hdrs, "/anime/proxy", q);
+  return proxyUrl(req, target, hdrs, "/api/stream/anime/proxy", q);
 }
 
 async function mediaProxy(req) {
@@ -436,7 +436,7 @@ async function mediaProxy(req) {
   const ref = u.searchParams.get("ref");
   const hdrs = ref ? { Referer: ref, Origin: new URL(ref).origin } : {};
   const q = ref ? `&ref=${encodeURIComponent(ref)}` : "";
-  return proxyUrl(req, target, hdrs, "/media/proxy", q);
+  return proxyUrl(req, target, hdrs, "/api/stream/media/proxy", q);
 }
 
 /* =======================================================================
@@ -654,7 +654,7 @@ async function route(req, env) {
     if (!id || !ep) return json({ error: "id and ep are required" }, 400);
     const st = await anikotoStream(id, ep, env);
     return json(st.type === "hls"
-      ? { type: "hls", url: `${u.origin}/anime/proxy?url=${encodeURIComponent(st.m3u8)}${st.referer ? "&ref=" + encodeURIComponent(st.referer) : ""}`, server: st.server, subtitles: st.subtitles }
+      ? { type: "hls", url: `${u.origin}/api/stream/anime/proxy?url=${encodeURIComponent(st.m3u8)}${st.referer ? "&ref=" + encodeURIComponent(st.referer) : ""}`, server: st.server, subtitles: st.subtitles }
       : { type: "embed", url: `${u.origin}/embed?url=${encodeURIComponent(st.embed)}`, server: st.server });
   }
 
@@ -667,7 +667,7 @@ async function route(req, env) {
       const e = u.searchParams.get("e") || ep || "1";
       const sources = await vidsrcTo(tmdb, s, e);
       if (!sources.length) return json({ error: "no sources", provider: "vidsrc" }, 502);
-      const url = `${u.origin}/media/proxy?url=${encodeURIComponent(sources[0].url)}`;
+      const url = `${u.origin}/api/stream/media/proxy?url=${encodeURIComponent(sources[0].url)}`;
       return new Response(`#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=0\n${url}\n`, {
         headers: { ...CORS, "Content-Type": "application/vnd.apple.mpegurl" },
       });
@@ -680,7 +680,7 @@ async function route(req, env) {
     const res = await get(st.m3u8, { ...(ref ? { Referer: ref } : {}), "Accept-Encoding": "identity" });
     if (!res.ok) return json({ error: `upstream playlist ${res.status}` }, 502);
     const text = await res.text();
-    return new Response(rewritePlaylist(text, st.m3u8, u.origin, "/anime/proxy", ref ? `&ref=${encodeURIComponent(ref)}` : ""), {
+    return new Response(rewritePlaylist(text, st.m3u8, u.origin, "/api/stream/anime/proxy", ref ? `&ref=${encodeURIComponent(ref)}` : ""), {
       headers: { ...CORS, "Content-Type": "application/vnd.apple.mpegurl", "Cache-Control": "public, max-age=300" },
     });
   }
@@ -693,7 +693,7 @@ async function route(req, env) {
     const sources = await vidsrcTo(id, s, e);
     return json({
       id, type: s && e ? "tv" : "movie",
-      sources: sources.map((x) => ({ ...x, proxied: `${u.origin}/media/proxy?url=${encodeURIComponent(x.url)}` })),
+      sources: sources.map((x) => ({ ...x, proxied: `${u.origin}/api/stream/media/proxy?url=${encodeURIComponent(x.url)}` })),
     });
   }
   if (/\/movie\/search$/.test(p)) {
