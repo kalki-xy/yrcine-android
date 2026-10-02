@@ -1,0 +1,11 @@
+name = "yrcine-edge"
+main = "edge-worker.js"
+compatibility_date = "2025-06-01"
+
+# The Worker reads the TMDB key from an ENCRYPTED SECRET, never from this file.
+# Set it once (either works):
+#   wrangler secret put TMDB_API_KEY
+#   Cloudflare dashboard -> your Worker -> Settings -> Variables -> Encrypt
+#
+# workers.dev is enabled by default, so the Worker gets:
+#   https://yrcine-edge.<your-subdomain>.workers.dev
