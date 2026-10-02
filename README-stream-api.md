@@ -73,6 +73,25 @@ players that refuse to be embedded become embeddable.
 ### Meta
 `GET /health` → sections, providers, features.
 
+## Deploy — Vercel (recommended)
+
+The repo is already wired for it: `vercel.json` serves the app from `www/` and
+routes the stream paths to the Edge function at `api/stream/[...slug].js`.
+
+1. **vercel.com → Add New → Project → Import** the `kalki-xy/yrcine-android` repo.
+2. Framework preset: **Other**. Leave build/output as-is (`vercel.json` sets
+   `outputDirectory: "www"`). If Vercel doesn't pick that up, set
+   **Settings → Build & Development → Output Directory** to `www`.
+3. **Settings → Environment Variables → add `TMDB_API_KEY`** (all environments).
+4. **Deploy.**
+
+After that, **every push to `main` redeploys automatically** — no workflow file,
+no tokens to manage. The app calls the API on its own origin, so `streamApiBase`
+stays `""`.
+
+> Note: `api/stream/[...slug].js` runs on the **Edge runtime** (declared in the
+> file), so it streams and proxies without Node cold starts.
+
 ## Deploy — Cloudflare Worker
 1. Workers & Pages → Create → Worker → Deploy.
 2. Edit code → paste `stream-api-worker.js` → Deploy.
