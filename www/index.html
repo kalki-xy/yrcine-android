@@ -28,6 +28,11 @@ window.YRCINE_CONFIG = {
   relayBase: "https://v0-yrcine.vercel.app",
   proxyBase: "https://v0-yrcine.vercel.app/api/proxy?url=",
   embedBase: "https://v0-yrcine.vercel.app/api/embed?url=",
+  /* --- Cloudflare ad-block Worker (optional) -------------------------
+   * Set this to "<your-worker-url>?url=" to route EVERY embedded player
+   * through your own Cloudflare Worker, which strips ad scripts/iframes
+   * at the edge. Leave "" to disable (default).                        */
+  adBlockBase: "",
   catalogBase: "https://v0-yrcine.vercel.app/api/catalog",
   /* TMDB: site → backend → TMDB (key stays on server). Client never needs the key when this works. */
   tmdbBase: "https://v0-yrcine.vercel.app/api/tmdb",
@@ -67,8 +72,30 @@ window.YRCINE_CONFIG = {
   ],
 
   /* --- optional profile sync backend ------------------------------------ */
-  syncApiUrl: "https://v0-yrcine.vercel.app/api/sync"
+  syncApiUrl: "https://v0-yrcine.vercel.app/api/sync",
+
+  /* --- Cloudflare edge: fast loading + unblock + ad-block ---------------
+   * Deploy edge-worker.js to Cloudflare, then paste its URL here (no trailing
+   * slash), e.g. "https://yrcine-edge.yourname.workers.dev". Every relay route
+   * (TMDB, catalog, proxy, embeds, images) then runs on your own Cloudflare
+   * edge — faster, and it bypasses ISP/geo blocks. Leave "" to keep Vercel. */
+  edgeBase: ""
 };
+
+/* If edgeBase is set, derive every relay route from it BEFORE the net shim runs. */
+(function (c) {
+  try {
+    var e = String(c.edgeBase || "").replace(/\/+$/, "");
+    if (!e) return;
+    c.relayBase   = e;
+    c.proxyBase   = e + "/api/proxy?url=";
+    c.embedBase   = e + "/api/embed?url=";
+    c.catalogBase = e + "/api/catalog";
+    c.tmdbBase    = e + "/api/tmdb";
+    c.adBlockBase = e + "/api/embed?url=";
+    c.imageProxy  = e + "/api/image?url=";
+  } catch (err) {}
+})(window.YRCINE_CONFIG);
 </script>
 <script src="./site-config.js"></script>
 <script id="yrcine-no-vpn-net-shim">
@@ -82,7 +109,7 @@ window.YRCINE_CONFIG = {
   if (CFG.proxyEnabled === false) return;
 
   var PROXY = CFG.proxyBase || "/api/proxy?url=";
-  var EMBED = CFG.embedBase || "/api/embed?url=";
+  var EMBED = CFG.adBlockBase || CFG.embedBase || "/api/embed?url=";
   var IMG_PROXY = CFG.imageProxy || "https://wsrv.nl/?url=";
   var DIRECT_MS = CFG.directTimeoutMs || 5000;
 
@@ -8852,6 +8879,61 @@ body.yr-in-vault.yr38-armed:not(.yr38-open) #yr38Fab,
     }
     return _f.call(this, input, init);
   };
+})();
+</script>
+
+
+<style id="yrcine-v90-adblock-css"></style>
+<script id="yrcine-v90-adblock-js">
+(function () {
+  "use strict";
+  if (window.__YR90) return; window.__YR90 = 1;
+  var D = document;
+  var CFG = (window.YRCINE_CONFIG = window.YRCINE_CONFIG || {});
+  function base(){ return String(CFG.adBlockBase || "").trim(); }
+  function eligible(u){
+    if (!u || typeof u !== "string") return false;
+    if (u === "about:blank" || u.indexOf("data:") === 0 || u.indexOf("blob:") === 0) return false;
+    if (!/^https?:\/\//i.test(u)) return false;
+    var b = base(); if (b && u.indexOf(b) === 0) return false;
+    try { if (u.indexOf(location.origin) === 0) return false; } catch (e) {}
+    if (/workers\.dev|v0-yrcine\.vercel\.app/i.test(u)) return false;
+    return true;
+  }
+  function route(f){
+    try {
+      var s = f.getAttribute("src");
+      if (!eligible(s)) return;
+      f.setAttribute("data-yr-adb-orig", s);
+      f.setAttribute("src", base() + encodeURIComponent(s));
+    } catch (e) {}
+  }
+  function applyAll(){
+    if (!base()) return;
+    Array.prototype.forEach.call(D.querySelectorAll("iframe[src]"), route);
+  }
+  function enable(url){
+    CFG.adBlockBase = String(url || "").trim();
+    try { localStorage.setItem("yrc.adblock", CFG.adBlockBase); } catch (e) {}
+    applyAll();
+  }
+  try { var saved = localStorage.getItem("yrc.adblock"); if (saved && !base()) CFG.adBlockBase = saved; } catch (e) {}
+  try {
+    new MutationObserver(function (muts) {
+      if (!base()) return;
+      for (var i = 0; i < muts.length; i++) {
+        for (var j = 0; j < muts[i].addedNodes.length; j++) {
+          var n = muts[i].addedNodes[j];
+          if (n.nodeType === 1) {
+            if (n.tagName === "IFRAME") route(n);
+            else if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll("iframe[src]"), route);
+          }
+        }
+      }
+    }).observe(D.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  window.__yrAdBlock = { enable: enable, disable: function () { enable(""); }, base: base, apply: applyAll };
+  setTimeout(applyAll, 800); setTimeout(applyAll, 2200);
 })();
 </script>
 
