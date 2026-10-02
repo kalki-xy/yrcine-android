@@ -681,6 +681,64 @@ async function flixhqServers(id, env) {
   return out;
 }
 
+
+/* =======================================================================
+ * SOURCE REGISTRY  —  Aniyomi-style extensions
+ * -----------------------------------------------------------------------
+ * Every provider is a self-contained module behind ONE interface, so adding
+ * a source is adding an object here (no router changes):
+ *
+ *   { id, name, type: "anime"|"movie"|"manga", lang, capabilities: [...],
+ *     search(query, env)            -> [{ id, title, image, ... }]
+ *     episodes(id, env)             -> [{ id, number, title }]
+ *     stream(id, episode, env)      -> [{ server, type:"hls"|"embed", url, referer?, subtitles? }]
+ *     chapters(id, env) / pages(id, opts, env)   (manga) }
+ * ======================================================================= */
+export const SOURCES = [
+  {
+    id: "anikoto", name: "AniKoto", type: "anime", lang: "en",
+    capabilities: ["search", "episodes", "stream"],
+    search: (q, env) => anikotoSearch(q, env),
+    episodes: (id, env) => anikotoEpisodes(id, env),
+    stream: async (id, ep, env) => {
+      const st = await anikotoStream(id, ep, env);
+      return st.type === "hls"
+        ? [{ server: st.server || "AniKoto", type: "hls", url: st.m3u8, referer: st.referer, subtitles: st.subtitles || [] }]
+        : [{ server: st.server || "AniKoto", type: "embed", url: st.embed }];
+    },
+  },
+  {
+    id: "vidsrc", name: "VidSrc", type: "movie", lang: "multi",
+    capabilities: ["stream"],
+    stream: async (id, ep, env) => {
+      const s = ep && ep.season && ep.number ? await vidsrcTo(id, ep.season, ep.number) : await vidsrcTo(id);
+      return (s || []).map((x) => ({ server: x.name, type: "hls", url: x.url }));
+    },
+  },
+  {
+    id: "animesalt", name: "AnimeSalt", type: "anime", lang: "multi",
+    capabilities: ["search", "stream"],
+    search: (q, env) => animesaltSearch(q, env),
+    stream: async (id, ep, env) => (await animesaltStreams(id, env)).map((x) => ({ server: x.server, type: "embed", url: x.embed, language: x.language })),
+  },
+  {
+    id: "flixhq", name: "FlixHQ", type: "movie", lang: "en",
+    capabilities: ["search", "stream"],
+    search: (q, env) => flixhqSearch(q, env),
+    stream: async (id, ep, env) => (await flixhqServers(id, env)).map((x) => ({ server: x.server, type: "embed", url: x.embed })),
+  },
+  {
+    id: "mangadex", name: "MangaDex", type: "manga", lang: "multi",
+    capabilities: ["search", "chapters", "pages"],
+    search: (q, env) => mangaSearch(q),
+    chapters: (id, env) => mangaChapters(id),
+    pages: (id, opts, env) => mangaPages(id, opts && opts.saver),
+  },
+];
+
+export function sourceById(id) { return SOURCES.find((s) => s.id === id) || null; }
+export function sourcesForType(type) { return type ? SOURCES.filter((s) => s.type === type) : SOURCES.slice(); }
+
 /* ======================================================================= */
 async function route(req, env) {
   const u = new URL(req.url);
@@ -690,10 +748,44 @@ async function route(req, env) {
   if (/\/anime\/search$|\/search$/.test(p) && !/\/manga|\/movie/.test(p)) {
     const q = u.searchParams.get("query") || u.searchParams.get("keyword");
     if (!q) return json({ error: "query is required" }, 400);
-    const prov = u.searchParams.get("provider");
+    const prov = u.searchParams.get("provider") || u.searchParams.get("source");
     if (prov === "animesalt") return json(await animesaltSearch(q, env));
+    if (prov && prov !== "anikoto") return json({ error: "unknown anime source", sources: ["anikoto", "animesalt"] }, 400);
     return json(await anikotoSearch(q, env));
   }
+  /* --- extension manager (Aniyomi-style) ------------------------------ */
+  if (/\/extensions$/.test(p)) {
+    const type = u.searchParams.get("type") || "";
+    const q = u.searchParams.get("q") || u.searchParams.get("query");
+    if (q) {
+      const list = sourcesForType(type).filter((s) => typeof s.search === "function");
+      const settled = await Promise.allSettled(list.map((s) => s.search(q, env)));
+      const results = {}, errors = {};
+      settled.forEach((r, i) => {
+        const id = list[i].id;
+        if (r.status === "fulfilled") results[id] = r.value || [];
+        else errors[id] = String((r.reason && r.reason.message) || r.reason);
+      });
+      return json({ query: q, type: type || "all", searched: list.map((s) => s.id), results, errors });
+    }
+    return json({
+      count: SOURCES.length,
+      sources: SOURCES.map((s) => ({ id: s.id, name: s.name, type: s.type, lang: s.lang, capabilities: s.capabilities })),
+    });
+  }
+
+  /* --- uniform per-source stream (extension interface) ---------------- */
+  if (/\/source-stream$/.test(p)) {
+    const sid = u.searchParams.get("source");
+    const id = u.searchParams.get("id");
+    if (!sid || !id) return json({ error: "source and id are required" }, 400);
+    const src = sourceById(sid);
+    if (!src || typeof src.stream !== "function") return json({ error: "unknown source", sources: SOURCES.map((s) => s.id) }, 400);
+    const ep = { season: Number(u.searchParams.get("s")) || 0, number: Number(u.searchParams.get("ep") || u.searchParams.get("e")) || 1 };
+    const streams = await src.stream(id, ep, env);
+    return json({ source: sid, id, streams: (streams || []).map((x) => ({ ...x, playUrl: x.type === "embed" ? `${u.origin}/api/stream/embed?url=${encodeURIComponent(x.url)}` : x.url })) });
+  }
+
   if (/\/anime\/proxy$|\/play\/proxy$/.test(p)) return await animeProxy(req, env);
   if (/\/media\/proxy$/.test(p)) return await mediaProxy(req);
   if (/\/embed$/.test(p)) return await embedProxy(req);
@@ -762,7 +854,8 @@ async function route(req, env) {
   if (/\/movie\/search$/.test(p)) {
     const q = u.searchParams.get("query");
     if (!q) return json({ error: "query is required" }, 400);
-    if (u.searchParams.get("provider") === "flixhq") return json(await flixhqSearch(q, env));
+    const mprov = u.searchParams.get("provider") || u.searchParams.get("source");
+    if (mprov === "flixhq") return json(await flixhqSearch(q, env));
     const j = await tmdb("/search/multi", { query: q, include_adult: "false" }, env);
     return json((j.results || []).filter((x) => x.media_type !== "person").map((x) => shapeMovie(x)));
   }
