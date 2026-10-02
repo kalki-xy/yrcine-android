@@ -1,7 +1,7 @@
 /**
  * YRcine relay — TMDB, AniList, generic proxy, ad-stripping embed, image proxy.
- * Runs as a Vercel Edge function. Ported from the Cloudflare edge worker, minus
- * the Cloudflare-only Cache API (Vercel Edge has no `caches.default`).
+ * Vercel Edge function. Hardened: every upstream call has a timeout + one retry,
+ * and JSON metadata is cached in-process with a TTL.
  */
 
 const UA =
@@ -24,6 +24,40 @@ function json(obj, status) {
   });
 }
 const ok = (u) => /^https?:\/\//i.test(String(u || ""));
+
+/* ---------- fetch with timeout + one retry ---------- */
+async function fetchT(url, opts = {}, ms = 9000, retries = 1) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => { try { ctl.abort(); } catch (_) {} }, ms);
+    try {
+      const r = await fetch(url, { ...opts, signal: ctl.signal });
+      clearTimeout(t);
+      return r;
+    } catch (e) {
+      clearTimeout(t);
+      lastErr = e;
+      if (attempt < retries) await new Promise((res) => setTimeout(res, 250));
+    }
+  }
+  throw lastErr || new Error("fetch failed");
+}
+
+/* ---------- tiny in-process TTL cache (per edge instance) ---------- */
+const mem = new Map();
+function cacheGet(key) {
+  const hit = mem.get(key);
+  if (!hit) return null;
+  if (hit.expires < Date.now()) { mem.delete(key); return null; }
+  return hit.value;
+}
+function cacheSet(key, value, ttlMs) {
+  if (mem.size > 300) { // crude bound
+    for (const k of mem.keys()) { mem.delete(k); if (mem.size <= 200) break; }
+  }
+  mem.set(key, { value, expires: Date.now() + ttlMs });
+}
 
 /* ---------- ad stripping ---------- */
 const AD_HOSTS = [
@@ -75,8 +109,11 @@ async function tmdb(env, sub, qs) {
   if (!key) return json({ error: "TMDB_API_KEY is not set on this project. Add it under Settings -> Environment Variables." }, 500);
   const sep = qs ? "&" : "?";
   const target = "https://api.themoviedb.org/3" + (sub || "") + (qs || "") + sep + "api_key=" + key;
-  const up = await fetch(target, { headers: { "User-Agent": UA, Accept: "application/json" } });
+  const cached = cacheGet("tmdb:" + target);
+  if (cached) return new Response(cached, { headers: hdrs({ "content-type": "application/json; charset=utf-8", "x-yrcine-cache": "hit", "cache-control": "public, max-age=900" }) });
+  const up = await fetchT(target, { headers: { "User-Agent": UA, Accept: "application/json" } }, 9000, 1);
   const body = await up.text();
+  if (up.ok) cacheSet("tmdb:" + target, body, 15 * 60 * 1000);
   return new Response(body, {
     status: up.status,
     headers: hdrs({ "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=900" }),
@@ -85,12 +122,15 @@ async function tmdb(env, sub, qs) {
 
 async function anilist() {
   const q = { query: "query{Page(page:1,perPage:30){media(type:ANIME,sort:TRENDING_DESC){id title{romaji english} coverImage{large} format episodes averageScore}}}" };
-  const up = await fetch("https://graphql.anilist.co", {
+  const cached = cacheGet("anilist:trending");
+  if (cached) return new Response(cached, { headers: hdrs({ "content-type": "application/json; charset=utf-8", "x-yrcine-cache": "hit" }) });
+  const up = await fetchT("https://graphql.anilist.co", {
     method: "POST",
     headers: { "content-type": "application/json", Accept: "application/json" },
     body: JSON.stringify(q),
-  });
+  }, 9000, 1);
   const body = await up.text();
+  if (up.ok) cacheSet("anilist:trending", body, 10 * 60 * 1000);
   return new Response(body, { status: up.status, headers: hdrs({ "content-type": "application/json; charset=utf-8" }) });
 }
 
@@ -103,7 +143,7 @@ async function proxy(request, u) {
     const ct = request.headers.get("content-type");
     if (ct) init.headers["content-type"] = ct;
   }
-  const r = await fetch(target, init);
+  const r = await fetchT(target, init, 15000, 1);
   const ct = r.headers.get("content-type") || "application/octet-stream";
   return new Response(r.body, { status: r.status, headers: hdrs({ "content-type": ct }) });
 }
@@ -115,10 +155,10 @@ async function embed(request, u) {
   try { t = new URL(target); } catch (e) { return json({ error: "bad url" }, 400); }
   let up;
   try {
-    up = await fetch(target, {
+    up = await fetchT(target, {
       headers: { "User-Agent": UA, Referer: t.origin + "/", Accept: "text/html,application/xhtml+xml,*/*" },
       redirect: "follow",
-    });
+    }, 10000, 1);
   } catch (e) {
     return new Response("upstream fetch failed", { status: 502, headers: hdrs({ "content-type": "text/plain" }) });
   }
@@ -136,11 +176,11 @@ async function embed(request, u) {
 async function image(u) {
   const target = u.searchParams.get("url");
   if (!ok(target)) return json({ error: "missing or bad url" }, 400);
-  const up = await fetch(target, { headers: { "User-Agent": UA, Accept: "image/*" } });
+  const up = await fetchT(target, { headers: { "User-Agent": UA, Accept: "image/*" } }, 10000, 1);
   const ct = up.headers.get("content-type") || "application/octet-stream";
   return new Response(up.body, {
     status: up.status,
-    headers: hdrs({ "content-type": ct, "cache-control": "public, max-age=86400" }),
+    headers: hdrs({ "content-type": ct, "cache-control": "public, max-age=86400, immutable" }),
   });
 }
 
@@ -167,3 +207,4 @@ export async function relay(request, env) {
 
 export const RELAY_CORS = CORS;
 export const RELAY_CONFIG = { runtime: "edge" };
+export { fetchT, stripAds };

@@ -74,6 +74,15 @@ players that refuse to be embedded become embeddable.
 | `GET /manga/chapters?id=<uuid>` | `[{ id, chapter, volume, title, pages, lang }]` |
 | `GET /manga/pages?id=<uuid>&saver=1` | `{ base, hash, pages: [url, ...] }` |
 
+### Diagnostics & unified search
+| Route | Notes |
+| --- | --- |
+| `GET /api/health` | service + **per-provider reachability** (parallel probes), config check, route list |
+| `GET /api/search?q=dune` | one query across **anime + movie + manga** at once → `{ query, counts, anime, movie, manga }` |
+
+`/api/health` is the one to hit when something looks broken — it tells you which
+provider is down and whether `TMDB_API_KEY` is set, instead of guessing.
+
 ### Meta
 `GET /health` → sections, providers, features.
 
