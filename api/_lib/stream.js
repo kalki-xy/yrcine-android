@@ -623,6 +623,64 @@ async function embedProxy(req) {
   });
 }
 
+
+/* =======================================================================
+ * MOVIE PROVIDER — flixhq.to (also goku.sx / sflix.to, same layout+IDs)
+ * Returns embed servers; play them through /api/stream/embed (ad-blocked).
+ * Grounded in emnextech/movie-scraper-api.
+ * ======================================================================= */
+const FLIXHQ_DEFAULT = "https://flixhq.to";
+const FLIXHQ = (env) => (env && env.FLIXHQ_BASE ? String(env.FLIXHQ_BASE).replace(/\/+$/, "") : FLIXHQ_DEFAULT);
+
+function parseFlixhqSearch(html, base) {
+  const out = [], seen = new Set();
+  const blocks = html.split(/<div[^>]*class="[^"]*flw-item[^"]*"[^>]*>/i).slice(1);
+  for (const b of blocks) {
+    const href =
+      (b.match(/<a[^>]*class="[^"]*film-poster-ahref[^"]*"[^>]*href="([^"]+)"/i) || [])[1] ||
+      (b.match(/href="(\/(?:movie|tv)\/[^"#?]+)"/i) || [])[1];
+    if (!href) continue;
+    const id = href.replace(/^\//, "").replace(/\/+$/, "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    let title = (b.match(/class="[^"]*film-name[^"]*"[^>]*>\s*<a[^>]*>([^<]+)</i) || [])[1] || "";
+    title = title.replace(/\s+/g, " ").trim();
+    let poster = (b.match(/<img[^>]*class="[^"]*film-poster-img[^"]*"[^>]*?(?:data-src|src)="([^"]+)"/i) || [])[1] || "";
+    if (poster && !/^https?:/i.test(poster)) poster = base + (poster.startsWith("/") ? poster : "/" + poster);
+    if (!title) continue;
+    out.push({ id, slug: id, title, image: poster, poster, type: /^movie\//.test(id) ? "movie" : "series", provider: "flixhq" });
+  }
+  return out;
+}
+
+async function flixhqSearch(query, env) {
+  const base = FLIXHQ(env);
+  const slug = String(query).trim().replace(/\s+/g, "-");
+  const r = await get(`${base}/search/${encodeURIComponent(slug)}`, { Referer: base + "/" });
+  if (!r.ok) throw new Error(`flixhq ${r.status}`);
+  return parseFlixhqSearch(await r.text(), base);
+}
+
+async function flixhqServers(id, env) {
+  const base = FLIXHQ(env);
+  const numId = (String(id).match(/-(\d+)$/) || [])[1];
+  if (!numId) throw new Error("flixhq: no numeric id in '" + id + "'");
+  const isMovie = /^movie\//.test(id);
+  const url = isMovie ? `${base}/ajax/movie/episodes/${numId}` : `${base}/ajax/season/episodes/${numId}`;
+  const html = await (await get(url, { Referer: `${base}/${id}`, "X-Requested-With": "XMLHttpRequest" })).text();
+  const out = [], re = /<a\b([^>]*data-linkid="[^"]+"[^>]*)>([\s\S]*?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const linkId = (m[1].match(/data-linkid="([^"]+)"/) || [])[1];
+    if (!linkId) continue;
+    const name = m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() || "Server";
+    const slug = String(id).replace(/^movie\//, "").replace(/^tv\//, "");
+    const prefix = isMovie ? "watch-movie" : "watch-tv";
+    out.push({ server: name, embed: `${base}/${prefix}/${slug}.${linkId}` });
+  }
+  return out;
+}
+
 /* ======================================================================= */
 async function route(req, env) {
   const u = new URL(req.url);
@@ -655,7 +713,7 @@ async function route(req, env) {
     const st = await anikotoStream(id, ep, env);
     return json(st.type === "hls"
       ? { type: "hls", url: `${u.origin}/api/stream/anime/proxy?url=${encodeURIComponent(st.m3u8)}${st.referer ? "&ref=" + encodeURIComponent(st.referer) : ""}`, server: st.server, subtitles: st.subtitles }
-      : { type: "embed", url: `${u.origin}/embed?url=${encodeURIComponent(st.embed)}`, server: st.server });
+      : { type: "embed", url: `${u.origin}/api/stream/embed?url=${encodeURIComponent(st.embed)}`, server: st.server });
   }
 
   if (/\/anime\/play$|\/play$/.test(p) && !/proxy/.test(p)) {
@@ -696,9 +754,15 @@ async function route(req, env) {
       sources: sources.map((x) => ({ ...x, proxied: `${u.origin}/api/stream/media/proxy?url=${encodeURIComponent(x.url)}` })),
     });
   }
+  if (/\/movie\/servers$/.test(p)) {
+    const id = u.searchParams.get("id");
+    if (!id) return json({ error: "id is required" }, 400);
+    return json(await flixhqServers(id, env));
+  }
   if (/\/movie\/search$/.test(p)) {
     const q = u.searchParams.get("query");
     if (!q) return json({ error: "query is required" }, 400);
+    if (u.searchParams.get("provider") === "flixhq") return json(await flixhqSearch(q, env));
     const j = await tmdb("/search/multi", { query: q, include_adult: "false" }, env);
     return json((j.results || []).filter((x) => x.media_type !== "person").map((x) => shapeMovie(x)));
   }
