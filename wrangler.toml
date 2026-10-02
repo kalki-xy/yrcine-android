@@ -1,0 +1,17 @@
+name = "yrcine"
+main = "cloudflare/edge-worker.js"
+compatibility_date = "2025-06-01"
+
+# ONE Worker serves BOTH the app and the API:
+#   /                -> www/index.html        (static asset)
+#   /api/tmdb|proxy|catalog|embed|image  -> edge-worker.js routes
+#   /health          -> {"status":"ok",...}
+#
+# The TMDB key is an ENCRYPTED SECRET, never in this file:
+#   npx wrangler secret put TMDB_API_KEY
+#
+# Deploy:  npx wrangler deploy   (or push -> GitHub Action)
+
+[assets]
+directory = "./www"
+binding = "ASSETS"
