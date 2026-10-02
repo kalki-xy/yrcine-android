@@ -25,17 +25,17 @@ window.YRCINE_CONFIG = {
    * To use your OWN deployment instead, point these three at it and deploy
    * the api/* files from this folder there. Set relayBase to "" for
    * same-origin (page and proxy on one domain). */
-  relayBase: "https://v0-yrcine.vercel.app",
-  proxyBase: "https://v0-yrcine.vercel.app/api/proxy?url=",
-  embedBase: "https://v0-yrcine.vercel.app/api/embed?url=",
+  relayBase: "",
+  proxyBase: "/api/proxy?url=",
+  embedBase: "/api/embed?url=",
   /* --- Cloudflare ad-block Worker (optional) -------------------------
    * Set this to "<your-worker-url>?url=" to route EVERY embedded player
    * through your own Cloudflare Worker, which strips ad scripts/iframes
    * at the edge. Leave "" to disable (default).                        */
   adBlockBase: "",
-  catalogBase: "https://v0-yrcine.vercel.app/api/catalog",
+  catalogBase: "/api/catalog",
   /* TMDB: site → backend → TMDB (key stays on server). Client never needs the key when this works. */
-  tmdbBase: "https://v0-yrcine.vercel.app/api/tmdb",
+  tmdbBase: "/api/tmdb",
   proxyEnabled: true,
 
   /* Image proxy for blocked image hosts (posters, MangaDex covers). */
@@ -4249,7 +4249,7 @@ function playURL(g){
 }
 function card(g){
   var site = SITES[g.s] || SITES.adg;
-  var _ip = ((window.YRCINE_CONFIG||{}).relayBase||'https://v0-yrcine.vercel.app').replace(/\/$/,'') + '/api/proxy/image?url=';
+  var _ip = '/api/image?url=';
   var thumb = g.id ? '<img loading="lazy" src="' + _ip + encodeURIComponent('https://content-cdn.adultgames.games/images/games/' + g.id + '.jpg?width=320') + '" alt="" onerror="this.remove()">' : '';
   return '<button class="yr38-card" data-yr38="' + esc(g.slug) + '">' +
     '<span class="yr38-thumb">' + thumb + '<span class="yr38-emblem">' + esc(g.t.charAt(0).toUpperCase()) + '</span>' +

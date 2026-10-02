@@ -1,5 +1,9 @@
 # YRcine Stream API
 
+> **Self-contained on Vercel.** The app, the stream API *and* the relay
+> (TMDB / catalog / proxy / ad-blocking embed / image) all live in this repo and
+> run on one origin. No Cloudflare, no external backend.
+
 Your own multi-provider backend — anime, movies, manhwa **and an ad-blocker** —
 in one file. No npm packages, no build step, no rented API in the hot path.
 
