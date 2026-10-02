@@ -864,6 +864,108 @@ async function mangapillPages(id, opts, env) {
   return { pages: out };
 }
 
+
+/* =======================================================================
+ * GENERIC MADARA SOURCE (WordPress manga/manhwa themes)
+ * One factory covers every Madara site: mgeko.cc, kunmanga.com, and others.
+ * Selectors grounded in onursedef/mgeko.cc-paperback (a working extension).
+ * ======================================================================= */
+function parseMadaraCards(html, base) {
+  const out = [], seen = new Set();
+  const re = /<a\b([^>]*href="([^"]*\/manga\/[^"]+)"[^>]*)>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const href = m[2];
+    if (/\/reader\//.test(href)) continue;
+    const slug = href.replace(/^https?:\/\/[^/]+/, "").replace(/\/+$/, "");
+    if (!slug || seen.has(slug)) continue;
+    const chunk = html.slice(Math.max(0, m.index - 700), m.index + 700);
+    let title =
+      (m[1].match(/title="([^"]+)"/) || [])[1] ||
+      (chunk.match(/<img[^>]*alt="([^"]+)"/) || [])[1] ||
+      (chunk.match(/<h[34][^>]*>([^<]+)</) || [])[1] || "";
+    title = title.replace(/&amp;/g, "&").replace(/&#8217;/g, "'").replace(/\s+/g, " ").trim();
+    if (!title || /^chapter/i.test(title)) continue;
+    let img = (chunk.match(/<img[^>]*?(?:data-src|data-lazy-src|data-original|src)="([^"]+)"/) || [])[1] || "";
+    if (img && !/^https?:/i.test(img)) img = base + (img.startsWith("/") ? img : "/" + img);
+    if (/logo|favicon|placeholder/i.test(img)) img = "";
+    seen.add(slug);
+    out.push({ id: slug, slug, title, cover: img, image: img, provider: "madara" });
+  }
+  return out;
+}
+
+function parseMadaraChapters(html) {
+  const out = [], seen = new Set();
+  const re = /<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const href = m[1];
+    const text = m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (!/chapter/i.test(href) && !/chapter/i.test(text)) continue;
+    if (seen.has(href)) continue;
+    seen.add(href);
+    const num = (href.match(/chapter[-/]?(\d+(?:[.-]\d+)?)/i) || text.match(/chapter\s*(\d+(?:[.-]\d+)?)/i) || [])[1] || "";
+    out.push({ id: href, chapter: String(num).replace("-", "."), title: text.slice(0, 70) });
+  }
+  return out;
+}
+
+function parseMadaraImages(html) {
+  let scope = html;
+  const i = html.search(/class="[^"]*(?:reading-content|page-break)[^"]*"/i);
+  if (i >= 0) scope = html.slice(i);
+  const out = [], seen = new Set();
+  const re = /<img\b[^>]*>/gi;
+  let m;
+  while ((m = re.exec(scope))) {
+    const tag = m[0];
+    const src = (tag.match(/data-src="([^"]+)"/) || tag.match(/data-lazy-src="([^"]+)"/) ||
+                 tag.match(/data-original="([^"]+)"/) || tag.match(/src="([^"]+)"/) || [])[1];
+    if (!src || seen.has(src)) continue;
+    if (/logo|favicon|avatar|emoji|sprite|banner|ads?[._-]|loading/i.test(src)) continue;
+    if (/\.svg(\?|$)/i.test(src)) continue;
+    seen.add(src);
+    out.push(src);
+  }
+  return out;
+}
+
+function madaraSource(id, name, base, lang) {
+  const abs = (u) => (/^https?:/i.test(u) ? u : base + (String(u).startsWith("/") ? u : "/" + u));
+  const fetchHtml = async (u) => {
+    const r = await get(abs(u), { Referer: base + "/" });
+    if (!r.ok) throw new Error(`${id} ${r.status}`);
+    return r.text();
+  };
+  return {
+    id, name, type: "manga", lang: lang || "en",
+    capabilities: ["search", "chapters", "pages"],
+    search: async (query) => {
+      const paths = [
+        `${base}/?s=${encodeURIComponent(query)}`,
+        `${base}/search/?s=${encodeURIComponent(query)}`,
+        `${base}/search/?keyword=${encodeURIComponent(query)}`,
+      ];
+      let html = "";
+      for (const u of paths) {
+        try { html = await fetchHtml(u); if (/\/manga\//.test(html)) break; } catch (_) {}
+      }
+      return parseMadaraCards(html, base);
+    },
+    chapters: async (mid) => {
+      const url = abs(mid);
+      let html = await fetchHtml(url);
+      try {
+        const aj = await get(url.replace(/\/+$/, "") + "/ajax/chapters/", { Referer: url, "X-Requested-With": "XMLHttpRequest" });
+        if (aj.ok) { const h2 = await aj.text(); if (/chapter/i.test(h2)) html += h2; }
+      } catch (_) {}
+      return parseMadaraChapters(html);
+    },
+    pages: async (cid) => ({ pages: parseMadaraImages(await fetchHtml(cid)) }),
+  };
+}
+
 /* =======================================================================
  * SOURCE REGISTRY  —  Aniyomi-style extensions
  * -----------------------------------------------------------------------
@@ -947,6 +1049,8 @@ export const SOURCES = [
     chapters: (id, env) => mangapillChapters(id, env),
     pages: (id, opts, env) => mangapillPages(id, opts, env),
   },
+  madaraSource("mgeko", "Mgeko", "https://www.mgeko.cc", "en"),
+  madaraSource("kunmanga", "KunManga", "https://kunmanga.com", "en"),
   {
     id: "mangadex", name: "MangaDex", type: "manga", lang: "multi",
     capabilities: ["search", "chapters", "pages"],
