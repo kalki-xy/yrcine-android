@@ -5185,7 +5185,6 @@ function epPlay(id, title) {
     if (frame) {
       frame.style.display = "";
       frame.setAttribute("data-yr-route", "relay");
-      frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-fullscreen");
       frame.setAttribute("referrerpolicy", "no-referrer");
       frame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
       frame.src = src;
@@ -7801,7 +7800,7 @@ body[data-navpos="left"] #dynamicIsland, body[data-navpos="right"] #dynamicIslan
         var embBase = CFG2.embedBase || ((CFG2.relayBase||"").replace(/\/$/,"") + "/api/embed?url=");
         if (embBase && /eporner\.com/i.test(embed)) embed = embBase + encodeURIComponent(embed);
         return '<div class="yr-reel" data-idx="'+i+'" style="scroll-snap-align:start;position:relative;height:min(78vh,640px);background:#0a0a0f;display:flex;align-items:center;justify-content:center">' +
-          '<iframe src="'+esc(embed)+'" sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="'+(i<2?"eager":"lazy")+'" referrerpolicy="no-referrer" style="width:100%;height:100%;border:0;background:#000"></iframe>' +
+          '<iframe src="'+esc(embed)+'" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="'+(i<2?"eager":"lazy")+'" referrerpolicy="no-referrer" style="width:100%;height:100%;border:0;background:#000"></iframe>' +
           '<div class="yr-reel-meta" style="position:absolute;left:14px;bottom:56px;right:14px;color:#fff;font:700 13px sans-serif;text-shadow:0 2px 8px #000;pointer-events:none">'+esc(title)+'</div>' +
           '<div class="yr-reel-bar" style="position:absolute;left:0;right:0;bottom:0;padding:12px 14px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;align-items:center;gap:10px;z-index:5">' +
             '<button type="button" data-mute style="border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;border-radius:999px;padding:8px 12px;font:700 11px monospace">🔊</button>' +
@@ -8934,6 +8933,96 @@ body.yr-in-vault.yr38-armed:not(.yr38-open) #yr38Fab,
   } catch (e) {}
   window.__yrAdBlock = { enable: enable, disable: function () { enable(""); }, base: base, apply: applyAll };
   setTimeout(applyAll, 800); setTimeout(applyAll, 2200);
+})();
+</script>
+
+
+<style id="yrcine-v91-polish-css">
+/* --- Dynamic Island: glass + spring --- */
+#dynamicIsland{
+  backdrop-filter: blur(18px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.4) !important;
+  transition: width .5s cubic-bezier(.34,1.56,.64,1), height .5s cubic-bezier(.34,1.56,.64,1),
+              border-radius .5s cubic-bezier(.34,1.56,.64,1), opacity .32s ease,
+              transform .5s cubic-bezier(.34,1.56,.64,1) !important;
+}
+/* hide the island when the drawer or a player modal is open */
+body.yr-drawer-open #dynamicIslandContainer,
+body.yr-player-open #dynamicIslandContainer{
+  opacity:0 !important; visibility:hidden !important; pointer-events:none !important;
+  transform: translateY(-16px) scale(.94) !important;
+}
+/* drawer sits above the island */
+#slidebarDrawer, aside#slidebarDrawer{ z-index: 12100 !important; }
+#slidebarBackdrop, .drawer-backdrop{ z-index: 12090 !important; }
+#dynamicIslandContainer{ z-index: 60; }
+/* --- Music: quick genre chips --- */
+#yrMusicChips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 16px;scrollbar-width:none}
+#yrMusicChips::-webkit-scrollbar{display:none}
+.yr-m-chip{flex:0 0 auto;border-radius:99px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);padding:8px 14px;font:700 11px 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.yr-m-chip:hover{border-color:rgba(255,255,255,.3);color:#fff}
+.yr-m-chip.on{background:linear-gradient(135deg,#f43f5e,#fb7185);border-color:transparent;color:#fff}
+</style>
+<script id="yrcine-v91-polish-js">
+(function () {
+  "use strict";
+  if (window.__YR91) return; window.__YR91 = 1;
+  var D = document;
+
+  /* 1) window.open guard — block random third-party popups, allow intentional opens */
+  try {
+    var _open = window.open;
+    var ALLOW = ["github.com","discord.com","discord.gg","themoviedb.org","anilist.co","google.com","youtube.com","instagram.com","x.com","twitter.com"];
+    function hostOf(u){ try { return new URL(u, location.href).hostname.replace(/^www\./,"").toLowerCase(); } catch(e){ return ""; } }
+    window.open = function (url, name, feats) {
+      var u = String(url == null ? "" : url);
+      var allowed = false;
+      if (!u || u === "about:blank" || u.indexOf("blob:") === 0 || u.indexOf("data:") === 0) allowed = true;
+      else {
+        var host = hostOf(u);
+        var here = location.hostname.replace(/^www\./,"").toLowerCase();
+        if (host && here && host === here) allowed = true;
+        for (var i = 0; i < ALLOW.length && !allowed; i++) { var a = ALLOW[i]; if (host === a || host.slice(-(a.length + 1)) === "." + a) allowed = true; }
+      }
+      if (!allowed) { try { if (typeof window.showToast === "function") window.showToast("Popup blocked"); } catch(e){} return null; }
+      return _open.apply(window, arguments);
+    };
+  } catch (e) {}
+
+  /* 2) hide the Dynamic Island when the drawer or a player modal is open */
+  function openish(id){
+    var el = D.getElementById(id); if (!el) return false;
+    if (el.classList.contains("hidden")) return false;
+    try { var cs = getComputedStyle(el); if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false; } catch(e){ return false; }
+    return true;
+  }
+  function syncIsland(){ D.body.classList.toggle("yr-player-open", openish("playerModal") || openish("yrAnimeWatchModal") || openish("yrEpModal")); }
+  if (D.readyState === "loading") D.addEventListener("DOMContentLoaded", syncIsland); else syncIsland();
+  setTimeout(syncIsland, 700); setTimeout(syncIsland, 1800);
+  try { new MutationObserver(syncIsland).observe(D.documentElement, { attributes: true, subtree: true, attributeFilter: ["class","style"] }); } catch(e){}
+  setInterval(syncIsland, 1500);
+
+  /* 3) Music: quick genre chips */
+  var GENRES = [
+    {l:"Trending", q:"trending hindi"}, {l:"Bollywood", q:"bollywood hits"}, {l:"Lofi", q:"lofi hindi"},
+    {l:"Punjabi", q:"punjabi hits"}, {l:"Tamil", q:"tamil hits"}, {l:"Telugu", q:"telugu hits"},
+    {l:"Arijit", q:"arijit singh"}, {l:"English", q:"english top hits"}
+  ];
+  function buildChips(){
+    if (!D.getElementById("viewMusic") || D.getElementById("yrMusicChips")) return;
+    var host = D.getElementById("yrMusicApp"); if (!host || !host.parentElement) return;
+    var row = D.createElement("div"); row.id = "yrMusicChips";
+    row.innerHTML = GENRES.map(function (g, i) { return '<button type="button" class="yr-m-chip' + (i===0?" on":"") + '" data-mq="' + g.q.replace(/"/g,"&quot;") + '">' + g.l + '</button>'; }).join("");
+    host.parentElement.insertBefore(row, host);
+    row.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("[data-mq]") : null; if (!b) return;
+      Array.prototype.forEach.call(row.querySelectorAll(".yr-m-chip"), function (x) { x.classList.toggle("on", x === b); });
+      var q = b.getAttribute("data-mq"), inp = D.getElementById("musicSearchInput");
+      if (inp) { inp.value = q; inp.dispatchEvent(new Event("input", { bubbles: true })); inp.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter" })); }
+    });
+  }
+  setTimeout(buildChips, 500); setTimeout(buildChips, 1500); setTimeout(buildChips, 3000);
+  try { new MutationObserver(buildChips).observe(D.body, { childList: true, subtree: true }); } catch(e){}
 })();
 </script>
 
