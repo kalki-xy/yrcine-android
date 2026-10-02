@@ -653,16 +653,15 @@ function parseFlixhqSearch(html, base) {
   return out;
 }
 
-async function flixhqSearch(query, env) {
-  const base = FLIXHQ(env);
+async function flixhqSearchAt(base, query) {
   const slug = String(query).trim().replace(/\s+/g, "-");
   const r = await get(`${base}/search/${encodeURIComponent(slug)}`, { Referer: base + "/" });
   if (!r.ok) throw new Error(`flixhq ${r.status}`);
   return parseFlixhqSearch(await r.text(), base);
 }
+async function flixhqSearch(query, env) { return flixhqSearchAt(FLIXHQ(env), query); }
 
-async function flixhqServers(id, env) {
-  const base = FLIXHQ(env);
+async function flixhqServersAt(base, id) {
   const numId = (String(id).match(/-(\d+)$/) || [])[1];
   if (!numId) throw new Error("flixhq: no numeric id in '" + id + "'");
   const isMovie = /^movie\//.test(id);
@@ -680,7 +679,120 @@ async function flixhqServers(id, env) {
   }
   return out;
 }
+async function flixhqServers(id, env) { return flixhqServersAt(FLIXHQ(env), id); }
 
+
+
+/* =======================================================================
+ * ANIME PROVIDER — HiAnime / AniWatch (aniwatchtv.to)
+ * Flow: /search -> /ajax/v2/episode/list -> /ajax/v2/episode/servers
+ *       -> /ajax/v2/episode/sources -> megaCloud embed -> resolveMegacloud (HLS)
+ * Grounded in codex0555/Aniwatch-Api.
+ * ======================================================================= */
+const HIANIME_DEFAULT = "https://aniwatchtv.to";
+const HIANIME = (env) => (env && env.HIANIME_BASE ? String(env.HIANIME_BASE).replace(/\/+$/, "") : HIANIME_DEFAULT);
+
+function parseHianimeSearch(html, base) {
+  const out = [], seen = new Set();
+  const blocks = html.split(/<div[^>]*class="[^"]*flw-item[^"]*"[^>]*>/i).slice(1);
+  for (const b of blocks) {
+    const href = (b.match(/href="([^"]*\/watch\/[^"#?]+)"/i) || [])[1];
+    if (!href) continue;
+    const slug = href.replace(/^https?:\/\/[^/]+/, "").replace(/^\/watch\//, "").replace(/\/+$/, "").trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    let title = (b.match(/class="[^"]*film-name[^"]*"[^>]*>\s*<a[^>]*>([^<]+)</i) || [])[1] || "";
+    title = title.replace(/\s+/g, " ").trim();
+    let image = (b.match(/<img[^>]*?(?:data-src|src)="([^"]+)"/i) || [])[1] || "";
+    if (image && !/^https?:/i.test(image)) image = base + (image.startsWith("/") ? image : "/" + image);
+    const hasDub = /tick-dub|is-dub|\(Dub\)/i.test(b);
+    const hasSub = /tick-sub|is-sub/i.test(b);
+    if (title) out.push({ id: slug, slug, title, image, poster: image, type: hasDub && !hasSub ? "dub" : "sub", provider: "hianime" });
+  }
+  return out;
+}
+
+async function hianimeSearch(query, env) {
+  const base = HIANIME(env);
+  const r = await get(`${base}/search?keyword=${encodeURIComponent(query)}`, { Referer: base + "/" });
+  if (!r.ok) throw new Error(`hianime ${r.status}`);
+  return parseHianimeSearch(await r.text(), base);
+}
+
+function hianimeAnimeId(html) {
+  return (html.match(/id="watch-main"[^>]*data-id="([^"]+)"/i) ||
+          html.match(/data-id="([^"]+)"[^>]*id="watch-main"/i) ||
+          html.match(/\/watch\/[^"]*-(\d+)/) || [])[1] || "";
+}
+
+function parseHianimeEpisodes(html) {
+  const out = [], re = /<a\b([^>]*class="[^"]*(?:ep-item|ssl-item)[^"]*"[^>]*)>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const a = m[1];
+    const num = (a.match(/data-number="([^"]+)"/) || [])[1] || (a.match(/data-num="([^"]+)"/) || [])[1];
+    const eid = (a.match(/data-id="([^"]+)"/) || [])[1];
+    if (!num || !eid) continue;
+    out.push({ num: parseFloat(num), id: eid, title: (a.match(/title="([^"]+)"/) || [])[1] || `Episode ${num}` });
+  }
+  return out;
+}
+
+async function hianimeEpisodes(slug, env) {
+  const base = HIANIME(env);
+  const html = await (await get(`${base}/watch/${encodeURIComponent(slug)}`, { Referer: base + "/" })).text();
+  let eps = parseHianimeEpisodes(html);
+  if (!eps.length) {
+    const animeId = hianimeAnimeId(html);
+    if (animeId) {
+      try {
+        const j = await (await get(`${base}/ajax/v2/episode/list/${encodeURIComponent(animeId)}`, { Referer: `${base}/watch/${slug}`, "X-Requested-With": "XMLHttpRequest" })).json();
+        eps = parseHianimeEpisodes((j && j.html) || "");
+      } catch (_) {}
+    }
+  }
+  return Array.from(new Map(eps.map((e) => [e.num, e])).values()).sort((a, b) => a.num - b.num);
+}
+
+async function hianimeServers(episodeId, env) {
+  const base = HIANIME(env);
+  const j = await (await get(`${base}/ajax/v2/episode/servers?id=${encodeURIComponent(episodeId)}`, { Referer: base + "/", "X-Requested-With": "XMLHttpRequest" })).json().catch(() => ({}));
+  const html = (j && j.html) || "";
+  const out = [], re = /<div\b([^>]*data-server-id="[^"]+"[^>]*)>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const a = m[1];
+    out.push({
+      serverId: (a.match(/data-server-id="([^"]+)"/) || [])[1],
+      type: (a.match(/data-type="([^"]+)"/) || [])[1] || "sub",
+      name: (a.match(/title="([^"]+)"/) || [])[1] || (a.match(/data-server-name="([^"]+)"/) || [])[1] || "Server",
+    });
+  }
+  return out.filter((x) => x.serverId);
+}
+
+async function hianimeStream(slug, ep, env) {
+  const base = HIANIME(env);
+  const eps = await hianimeEpisodes(slug, env);
+  if (!eps.length) throw new Error("hianime: no episodes");
+  const target = eps.find((e) => e.num === Number(ep)) || eps[Number(ep) - 1];
+  if (!target) throw new Error("hianime: episode not found");
+
+  const servers = await hianimeServers(target.id, env);
+  let fallback = null;
+  for (const sv of servers.slice(0, 6)) {
+    try {
+      const j = await (await get(`${base}/ajax/v2/episode/sources?id=${encodeURIComponent(sv.serverId)}`, { Referer: base + "/", "X-Requested-With": "XMLHttpRequest" })).json().catch(() => ({}));
+      const link = j && j.link;
+      if (!link) continue;
+      const res = await resolveMegacloud(link).catch(() => null);
+      if (res && res.m3u8) return { type: "hls", m3u8: res.m3u8, referer: res.referer, subtitles: res.subtitles, server: sv.name };
+      if (!fallback) fallback = { type: "embed", embed: link, server: sv.name };
+    } catch (_) {}
+  }
+  if (fallback) return fallback;
+  throw new Error("hianime: no playable server");
+}
 
 /* =======================================================================
  * SOURCE REGISTRY  —  Aniyomi-style extensions
@@ -726,6 +838,30 @@ export const SOURCES = [
     capabilities: ["search", "stream"],
     search: (q, env) => flixhqSearch(q, env),
     stream: async (id, ep, env) => (await flixhqServers(id, env)).map((x) => ({ server: x.server, type: "embed", url: x.embed })),
+  },
+  {
+    id: "hianime", name: "HiAnime", type: "anime", lang: "multi",
+    capabilities: ["search", "episodes", "stream"],
+    search: (q, env) => hianimeSearch(q, env),
+    episodes: (id, env) => hianimeEpisodes(id, env),
+    stream: async (id, ep, env) => {
+      const st = await hianimeStream(id, ep.number || 1, env);
+      return st.type === "hls"
+        ? [{ server: st.server || "HiAnime", type: "hls", url: st.m3u8, referer: st.referer, subtitles: st.subtitles || [] }]
+        : [{ server: st.server || "HiAnime", type: "embed", url: st.embed }];
+    },
+  },
+  {
+    id: "goku", name: "Goku", type: "movie", lang: "en",
+    capabilities: ["search", "stream"],
+    search: (q, env) => flixhqSearchAt("https://goku.sx", q),
+    stream: async (id, ep, env) => (await flixhqServersAt("https://goku.sx", id)).map((x) => ({ server: x.server, type: "embed", url: x.embed })),
+  },
+  {
+    id: "sflix", name: "SFlix", type: "movie", lang: "en",
+    capabilities: ["search", "stream"],
+    search: (q, env) => flixhqSearchAt("https://sflix.to", q),
+    stream: async (id, ep, env) => (await flixhqServersAt("https://sflix.to", id)).map((x) => ({ server: x.server, type: "embed", url: x.embed })),
   },
   {
     id: "mangadex", name: "MangaDex", type: "manga", lang: "multi",
