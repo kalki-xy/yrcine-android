@@ -112,7 +112,7 @@ window.YRCINE_CONFIG = {
   try {
     var e = String(c.edgeBase || "").replace(/\/+$/, "");
     var s = String(c.streamApiBase || "").replace(/\/+$/, "");
-    if (e && (!s || /YOUR-STREAM-API|mdtahseen7378/.test(s))) { s = e; c.streamApiBase = e; }
+    if (e && !s) { s = e; c.streamApiBase = e; }
     /* no host set anywhere -> call the API on this page's own origin */
     if (!c.adBlockBase) c.adBlockBase = s ? s + "/embed?url=" : "/embed?url=";
   } catch (err) {}
@@ -9084,7 +9084,7 @@ body.yr-player-open #dynamicIslandContainer{
   var D = document;
   var CFG = (window.YRCINE_CONFIG = window.YRCINE_CONFIG || {});
   var HLS_CDN = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
-  function base(){ return String(CFG.streamApiBase || "https://123anime-api.mdtahseen7378.workers.dev").replace(/\/+$/, ""); }
+  function base(){ return String(CFG.streamApiBase || "").replace(/\/+$/, ""); }
   function norm(s){ return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
   function loadHls(){
     if (window.Hls) return Promise.resolve(true);
