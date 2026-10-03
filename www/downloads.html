@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>YRcine Downloads</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,sans-serif;background:#070709;color:#fff;padding:20px;padding-bottom:48px}
+  h1{font-size:28px;margin:0 0 8px}
+  .sub{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:24px}
+  .card{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;margin-bottom:12px;background:#11131a}
+  .card h2{margin:0 0 6px;font-size:16px}
+  .card p{margin:0 0 12px;color:rgba(255,255,255,.55);font-size:13px;line-height:1.45}
+  a.btn{display:inline-block;padding:10px 16px;border-radius:12px;background:linear-gradient(135deg,#f5b942,#ffd97a);color:#111;font-weight:800;font-size:11px;letter-spacing:1px;text-decoration:none;text-transform:uppercase}
+  .tag{display:inline-block;font:700 9px monospace;letter-spacing:1px;padding:3px 8px;border-radius:999px;background:rgba(245,185,66,.15);color:#f5b942;margin-bottom:8px}
+  .back{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;display:inline-block;margin-bottom:16px}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Back to YRcine</a>
+<h1>Downloads</h1>
+<p class="sub">APK · HTML · API — managed by YRcine Stream API</p>
+<div id="list">Loading…</div>
+<script>
+fetch('https://yrcine-consumet-api.vercel.app/downloads')
+  .then(r => r.json())
+  .then(d => {
+    const el = document.getElementById('list');
+    if (!d.items || !d.items.length) { el.textContent = 'No items'; return; }
+    el.innerHTML = d.items.map(i => `
+      <div class="card">
+        <div class="tag">${(i.type||'').toUpperCase()}</div>
+        <h2>${i.title}</h2>
+        <p>${i.note || ''}${i.version ? ' · v' + i.version : ''}${i.size ? ' · ' + i.size : ''}</p>
+        <a class="btn" href="${i.url}" target="_blank" rel="noopener">Open</a>
+      </div>`).join('');
+  })
+  .catch(e => { document.getElementById('list').textContent = 'Failed: ' + e.message; });
+</script>
+</body>
+</html>
